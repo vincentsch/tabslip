@@ -29,6 +29,8 @@ func openTest(t *testing.T, dir string, days int) *Store {
 }
 
 func TestRelativeDataDirectorySupportsRecordingAndReading(t *testing.T) {
+	// Keep the working directory and temporary data on the same Windows drive.
+	t.Chdir(t.TempDir())
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
