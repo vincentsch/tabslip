@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/spf13/cobra"
@@ -66,7 +67,8 @@ func receiptsCommand(dir *string) *rungrad.Command {
 				fmt.Fprintln(w, "No receipts match these filters.")
 			}
 			for _, r := range rows {
-				fmt.Fprintf(w, "%s  %s  %s → %s  %s USD (%s)\n", r.ID, r.Started, value(r.RequestedModel), value(r.ReportedModel), value(r.Cost), r.CostSource)
+				started, _ := time.Parse(time.RFC3339Nano, r.Started)
+				fmt.Fprintf(w, "%s  %s  %s → %s  %s\n", r.ID, started.Local().Format("2006-01-02 15:04:05"), value(r.RequestedModel), value(r.ReportedModel), costText(r.Cost, r.CostSource))
 			}
 		})
 	})
@@ -156,8 +158,12 @@ func renderReceiptStyled(w io.Writer, c store.Call, color bool) {
 		field(p[0], p[1])
 	}
 	sep()
-	field("TOTAL", value(s.Cost)+" USD")
-	line(s.CostSource)
+	if s.Cost == nil {
+		field("TOTAL", "unknown")
+	} else {
+		field("TOTAL", value(s.Cost)+" USD")
+		line(s.CostSource)
+	}
 	var supp *receipt.Supplement
 	if len(c.Supplements) > 0 {
 		supp = &c.Supplements[len(c.Supplements)-1]
@@ -190,4 +196,11 @@ func renderReceiptStyled(w io.Writer, c store.Call, color bool) {
 	}
 	line("Model and token values are reported by the provider.")
 	sep()
+}
+
+func costText(amount *string, source string) string {
+	if amount == nil {
+		return "unknown"
+	}
+	return *amount + " USD (" + source + ")"
 }

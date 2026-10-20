@@ -16,7 +16,7 @@ def main():
         max_retries=0,
     )
     response = client.chat.completions.create(
-        model="gpt-4.1",
+        model=os.environ.get("OPENAI_MODEL", "gpt-4.1"),
         messages=[{"role": "user", "content": "Say hello in one short sentence."}],
         max_completion_tokens=64,
         extra_headers={"X-Tollglass-Tag": args.tag} if args.tag else {},

@@ -55,7 +55,7 @@ func receiptSVG(c store.Call, valid bool) (template.HTML, string) {
 	add("PROVIDER (REPORTED)", value(s.Provider))
 	add("TAG", value(s.Tag))
 	lines = append(lines, "──────────────────────────────────────")
-	for _, v := range []struct{ name, val string }{{"TOKENS IN", number(s.Input)}, {"TOKENS OUT", number(s.Output)}, {"CACHED", number(r.Usage.Cached)}, {"REASONING", number(r.Usage.Reasoning)}, {"FIRST BYTE", number(s.TTFB) + " ms"}, {"TOTAL TIME", strconv.FormatInt(s.Total, 10) + " ms"}, {"STATUS", number(s.Status)}, {"TOTAL", value(s.Cost) + " USD (" + s.CostSource + ")"}} {
+	for _, v := range []struct{ name, val string }{{"TOKENS IN", number(s.Input)}, {"TOKENS OUT", number(s.Output)}, {"CACHED", number(r.Usage.Cached)}, {"REASONING", number(r.Usage.Reasoning)}, {"FIRST BYTE", number(s.TTFB) + " ms"}, {"TOTAL TIME", strconv.FormatInt(s.Total, 10) + " ms"}, {"STATUS", number(s.Status)}, {"TOTAL", costText(s.Cost, s.CostSource)}} {
 		add(v.name, v.val)
 	}
 	var supp *receipt.Supplement
@@ -98,4 +98,11 @@ func receiptSVG(c store.Call, valid bool) (template.HTML, string) {
 	fmt.Fprintf(&b, `<g transform="rotate(-6 170 %d)" fill="%s"><rect x="50" y="%d" width="240" height="63" rx="8" fill="none" stroke="%s" stroke-width="2"/><rect x="54" y="%d" width="232" height="55" rx="6" fill="none" stroke="%s" stroke-dasharray="3 2"/><text x="170" y="%d" text-anchor="middle" font-family="monospace" font-size="24">%s</text><text x="170" y="%d" text-anchor="middle" font-family="monospace" font-size="11">%s</text></g>`, y, ink, y-20, ink, y-16, ink, y+8, stamp, y+28, html.EscapeString(r.Instance.KeyID))
 	fmt.Fprintf(&b, `<text x="16" y="%d" fill="#26231D" font-size="10">Model and token values are reported</text><text x="16" y="%d" fill="#26231D" font-size="10">by the provider.</text></svg>`, h-35, h-20)
 	return template.HTML(b.String()), strings.Join(lines, "\n") + "\n" + stamp + " by your Tollglass " + r.Instance.KeyID + "\nModel and token values are reported by the provider."
+}
+
+func costText(amount *string, source string) string {
+	if amount == nil {
+		return "unknown"
+	}
+	return *amount + " USD (" + source + ")"
 }

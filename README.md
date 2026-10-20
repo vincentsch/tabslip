@@ -1,163 +1,23 @@
-# Tollglass
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/wordmark-dark.svg">
+    <img src="docs/media/wordmark-light.svg" alt="Tollglass" width="440" height="88">
+  </picture>
+</p>
 
-Tollglass forwards AI API calls and keeps signed receipts for OpenAI chat
-completions, Responses, embeddings and Anthropic Messages. A receipt records
-the requested and reported model, token usage,
-timing, body hashes and findings. Model names and usage come from the provider.
-The signature shows that the receipt has not changed since your Tollglass signed it.
+<p align="center"><strong>Receipts for your AI API calls.</strong></p>
 
-Open the local page to browse live calls, receipts, spend and setup.
-Receipts include reported or estimated costs and can also be read and exported from the terminal.
+Tollglass forwards calls to your AI provider and keeps receipts signed by your Tollglass.
 
-## Install
+<p align="center"><a href="docs/commands.md">Docs</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
 
-Install the release for your platform into `~/.local/bin`:
+![The Calls page in dark theme, with eight simulated demo calls, model names, tokens, costs and findings](docs/media/calls-dark.webp)
 
-```sh
-curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
-tollglass demo
-```
+![A simulated call as a paper receipt in light theme, with its signed stamp and provider details](docs/media/receipt-light.webp)
 
-From a checkout, run `sh install.sh`. The script needs curl and either
-`sha256sum` or `shasum`. It verifies the download against the release's
-SHA-256 manifest before replacing an existing installation. The checksum
-detects changed downloads; it does not independently establish the publisher's
-identity. Set `INSTALL_DIR` to choose another directory. Add that directory
-to `PATH` if the installer prints a hint.
+## Set it up with your coding agent
 
-By default the installer selects the latest release. To select a tag from a
-checkout, run `TOLLGLASS_VERSION=v0.1.0 sh install.sh`.
-The public installer URL and release downloads await publication.
-
-## Start the gateway
-
-Build with Go 1.27.2. An older Go installation can download the toolchain
-with `GOTOOLCHAIN=auto`.
-
-```sh
-make build
-./bin/tollglass
-```
-
-`tollglass serve` starts the same server. It listens on `127.0.0.1:4545`.
-Use `--port 4546` to choose another port. Stop with Ctrl+C or SIGTERM.
-Active calls get up to 30 seconds to finish, then queued receipts are drained.
-
-Point your client's base URL at the upstream you use:
-
-| Upstream | Base URL |
-| --- | --- |
-| OpenAI | `http://127.0.0.1:4545/openai/v1` |
-| OpenRouter | `http://127.0.0.1:4545/openrouter/v1` |
-| Ollama | `http://127.0.0.1:4545/ollama/v1` |
-| Anthropic | `http://127.0.0.1:4545/anthropic` |
-
-All paths pass through. Receipts cover `POST /v1/chat/completions`,
-`POST /v1/responses` and `POST /v1/embeddings` on OpenAI-compatible upstreams,
-and `POST /v1/messages` on Anthropic upstreams. Tollglass forwards credentials
-from your client; it needs no API key
-of its own and does not retry provider calls.
-
-```python
-from openai import OpenAI
-
-client = OpenAI(base_url="http://127.0.0.1:4545/openai/v1")
-response = client.chat.completions.create(
-    model="gpt-4.1",
-    messages=[{"role": "user", "content": "Hello"}],
-    extra_headers={"X-Tollglass-Tag": "my-project"},
-)
-```
-
-Streaming stays streaming. OpenAI and Ollama streaming chat requests get
-`stream_options.include_usage=true` when needed. OpenRouter requests stay
-unchanged. Responses, embeddings and Messages requests also stay unchanged.
-Receipts record any injection and hash the original client bytes.
-
-Anthropic SDK clients use the base URL without `/v1`:
-
-```python
-from anthropic import Anthropic
-
-client = Anthropic(base_url="http://127.0.0.1:4545/anthropic")
-with client.messages.stream(
-    model="claude-sonnet-4-6",
-    max_tokens=256,
-    messages=[{"role": "user", "content": "Hello"}],
-) as stream:
-    for text in stream.text_stream:
-        print(text, end="", flush=True)
-```
-
-`response.complete` records capture completeness. Fully received Responses
-`incomplete` and `failed` results preserve usage and `response.api_status`;
-complete provider error events finish capture and record `upstream_error`.
-A stream cut off before its terminal event is incomplete.
-
-Signed Anthropic `usage.input_tokens` is the provider's uncached input.
-The database summary adds cache reads and total cache writes for display;
-if any category is unknown, the total is unknown. One-hour cache writes are
-part of total writes and are never counted twice. Embeddings record input
-usage with output tokens left null.
-
-## Try the offline demo
-
-```sh
-./bin/tollglass demo
-```
-
-The demo sends eight simulated calls through the gateway on a free local port.
-It includes chat, embeddings and Anthropic Messages, plus a simulated fallback,
-a rate limit and a response without usage. It accepts later calls with normal
-SDK model names and ignores API keys. It makes no external network requests.
-
-Demo data, keys and prices stay separate from your normal setup. The demo never
-reads your normal config. Ctrl+C removes its temporary data; use
-`--data-dir ./demo-data` to keep it. `--dry-run` creates no state or listener.
-`--json` prints one object after the eight receipts and one signed supplement
-are stored. It includes the base URLs, data dir, key id and command examples.
-Use the printed export, key-export and verify commands with the demo directory.
-Open the printed Page URL to browse the eight calls. The banner marks all demo data as simulated.
-
-## Open the local page
-
-Open `http://127.0.0.1:4545` after starting the gateway. Use `--open` to
-launch your browser when starting it; otherwise Tollglass opens nothing.
-The page shares the gateway's port and makes no external requests.
-
-Calls updates live. Filter by tag, upstream, requested or reported model,
-status and dates, or show only calls with findings. Search covers receipt ids,
-tags, upstreams, models and reported providers. It never searches stored
-content. Choose newest first or slowest first, then use Load more for older
-rows. Press `/` for search, `j` and `k` to move, Enter to open, and Esc to
-clear filters. The theme toggle remembers your choice.
-
-Open a receipt for its paper view, original signed findings, provider
-supplement, body hashes and any locally stored content. The SIGNED stamp
-checks the base envelope and its supplements with your local public key.
-A changed signature, signer or supplement linkage shows INVALID. The
-signature does not establish whether a provider's claims are true.
-Downloads contain the original content-free envelope. Delete removes the
-receipt, supplements and content from this instance; external copies remain.
-
-Spend shows exact reported and estimated subtotals and unknown-cost coverage.
-Today starts at UTC midnight. Seven and thirty days include today and the
-preceding six or twenty-nine dates. Tag and date filters apply to all tiles,
-bars and tables. Delayed provider supplements update the open page too.
-
-Setup has base URLs, SDK examples, the public key and content settings.
-Saving writes the selected config file atomically and preserves custom
-upstreams. Content can be kept for all calls or selected tags, starting with
-calls that begin after saving. Retention changes delete older receipts,
-supplements and content immediately, then daily; 0 keeps all receipts.
-An explicit `--keep-content` flag disables its corresponding page control.
-
-Pages, live events, downloads and settings accept loopback connections and
-local Host headers only, even with `--listen 0.0.0.0`. Proxy routes still use
-the chosen listen address. Use an SSH tunnel to view a gateway elsewhere.
-Changes need the page's token and a same-origin POST. No CORS access is enabled.
-
-The Setup page displays and copies this prompt from one source constant:
+Copy this into your coding agent inside the project you want to connect:
 
 ```text
 Set up Tollglass for this project.
@@ -166,176 +26,232 @@ the steps. Route this project's AI API calls through it, make one real call,
 and show me the receipt.
 ```
 
-## How costs work
+The agent finds your AI client, keeps its provider and keys, and saves a small base URL change.
+It installs or reuses Tollglass, makes one provider call that may cost money, and shows the receipt and undo steps.
+Read [what the agent changes](docs/setup-with-an-agent.md).
 
-A receipt uses a provider's reported `usage.cost` when present, including zero.
-For direct OpenAI and Anthropic calls, Tollglass also calculates an estimate
-from an embedded LiteLLM price snapshot. Lookup stays within that provider's
-namespace, preferring the reported model, then the requested model, then names
-without a date suffix. A reported cost keeps the estimate beside it for
-comparison. Missing prices or usage leave the cost unknown.
-
-Estimates charge cached input and Anthropic cache writes at their own rates.
-Anthropic input is already uncached; reasoning tokens are already part of
-OpenAI output. Embeddings are priced from input alone. Calculations use exact
-decimals and store 12 fractional digits with half-up rounding. Each attempted
-direct-provider lookup records the table version, including a price miss.
-OpenRouter, Ollama and custom upstreams receive no price-table estimates.
-
-For OpenRouter, Tollglass fetches generation details after the response finishes.
-It tries up to three times within ten seconds, using the client's authorization
-in memory. `enrich_openrouter: false` disables this. Failed lookups leave the
-receipt usable and do not affect the client response. Generation details form
-a separate signed supplement with provider attempts, native tokens and region.
-Its cost takes precedence in the database summary and is counted once. The
-original signed receipt stays unchanged.
-
-Server startup never downloads prices. The committed snapshot comes from
-LiteLLM revision `4818b767d8b4c4e5fa9885ab953d6f5cfe7c7ca5`.
-Developers can reproduce it with `go generate ./internal/prices`.
-Use `tollglass prices update` to download a new snapshot explicitly, then
-restart a running gateway to use it.
-
-## Configuration and local data
-
-Tollglass reads `--config`, then `TOLLGLASS_CONFIG`, then
-`config.yaml` under your OS config directory's `tollglass` folder.
-Missing files use defaults. Existing malformed YAML fails. Flags override file
-settings. Preview a start without creating files or opening a listener:
+## Try it without a key
 
 ```sh
-./bin/tollglass serve --config config.yaml --dry-run --json
+curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
+tollglass demo
 ```
 
-Custom upstreams add names; they cannot replace presets or local page routes
-(`healthz`, `setup`, `spend`, `r`, `events` and `settings`). Their base URL omits
-`/v1`. For example:
+The public installer and release downloads await publication. From a checkout,
+use `sh install.sh` with an available release, or [build from source](#install-options).
+The shell installer needs a POSIX shell, curl, and `sha256sum` or `shasum`.
+It supports Linux, macOS and Windows through Git Bash. Add the printed install
+directory to PATH if needed. Release binaries do not need Go.
 
-```yaml
-listen: 127.0.0.1
-port: 4545
-keep_content: false
-keep_content_tags: []
-retention_days: 90
-upstreams:
-  - name: local-test
-    base_url: http://127.0.0.1:4598
-    api: openai
-    inject_usage: false
-```
+Open the printed Page URL. The demo sends eight simulated calls through the
+same gateway, including a fallback, an error and a call with unknown usage.
+It makes no external requests. Later calls use the printed OpenAI `/demo/v1`
+or Anthropic `/demo` base URL on a free port, with a synthetic key such as `demo`.
+The [examples](examples/README.md) show how. Use the printed data directory for
+receipt commands; it is separate from your normal instance and removed on
+Ctrl+C. Use `tollglass demo --data-dir ./demo-data` to keep it.
 
-Use `http://127.0.0.1:4545/local-test/v1` for this example. Custom OpenAI-compatible
-upstreams inject usage by default; set `inject_usage: false` to disable it.
-Tags accept 1–64 letters, digits, dots, underscores or hyphens. Tollglass reads
-and removes `X-Tollglass-*` headers before forwarding.
+## Connect your app yourself
 
-The data directory contains `tollglass.db`, `key.ed25519` and `key.pub`.
-On Linux it defaults to `$XDG_DATA_HOME/tollglass`, or
-`~/.local/share/tollglass`. macOS uses `~/Library/Application Support/tollglass`;
-Windows uses `%LocalAppData%\tollglass`. Override it with `--data-dir`.
-Back up the private key with the database. If the key is missing or differs
-from the database identity, restore the original key or use a new data directory.
-
-Content is off by default. Receipts contain selected parameters and hashes,
-never prompt or answer text. `--keep-content`, `keep_content: true`, or
-`keep_content_tags` stores content in a separate local table, capped at 10 MiB
-per body. Provider error messages appear only in that local content when enabled.
-Credentials from headers never enter storage or logs. Metadata extraction is
-limited to 10 MiB per JSON value or SSE event; forwarding and hashing continue
-when parsing fails. Retention deletes receipts and their content after 90 days;
-`retention_days: 0` keeps them indefinitely.
-
-`GET /healthz` accepts loopback connections and returns `tool`, `version`,
-`key_id` and `unrecorded_calls`. A full recording queue or failed write leaves
-the client call intact and increases that counter. The counter resets on restart.
-`--json` prints one startup object. `--version` includes version, commit and Go version.
-
-## Check a source build
+Install as above, then start the gateway:
 
 ```sh
+tollglass serve
+```
+
+Open `http://127.0.0.1:4545`. Calls updates live; click a call for its paper
+receipt, or open Spend for totals and Setup for URLs and content settings.
+The theme button remembers your choice. `--open` opens the page on startup.
+
+Change your client's base URL, keeping its existing key and model:
+
+| Provider | Client base URL at the default port |
+| --- | --- |
+| OpenAI | `http://127.0.0.1:4545/openai/v1` |
+| OpenRouter | `http://127.0.0.1:4545/openrouter/v1` |
+| Ollama | `http://127.0.0.1:4545/ollama/v1` |
+| Anthropic | `http://127.0.0.1:4545/anthropic` |
+
+These snippets make provider calls that may cost money. Python OpenAI reads
+`OPENAI_API_KEY` from the environment:
+
+```python
+from openai import OpenAI
+client = OpenAI(base_url="http://127.0.0.1:4545/openai/v1")
+response = client.chat.completions.create(
+    model="gpt-4.1", messages=[{"role": "user", "content": "Hello"}])
+print(response.choices[0].message.content)
+```
+
+Node OpenAI uses the same key variable:
+
+```js
+import OpenAI from 'openai';
+const client = new OpenAI({baseURL: 'http://127.0.0.1:4545/openai/v1'});
+const response = await client.chat.completions.create({
+  model: 'gpt-4.1', messages: [{role: 'user', content: 'Hello'}]});
+console.log(response.choices[0].message.content);
+```
+
+Anthropic reads `ANTHROPIC_API_KEY`. Its SDK appends `/v1/messages`, so leave
+`/v1` out of the base URL:
+
+```python
+from anthropic import Anthropic
+client = Anthropic(base_url="http://127.0.0.1:4545/anthropic")
+response = client.messages.create(model="claude-sonnet-4-6", max_tokens=64,
+    messages=[{"role": "user", "content": "Hello"}])
+print(response.content[0].text)
+```
+
+```ts
+import Anthropic from '@anthropic-ai/sdk';
+const client = new Anthropic({baseURL: 'http://127.0.0.1:4545/anthropic'});
+const response = await client.messages.create({model: 'claude-sonnet-4-6',
+  max_tokens: 64, messages: [{role: 'user', content: 'Hello'}]});
+console.log(response.content);
+```
+
+Save the URL in your project's normal environment or SDK configuration.
+Tollglass forwards the client's credentials and does not retry provider calls.
+Restore the original URL before stopping Tollglass if the app must keep working.
+It must keep running, including after reboot; installation does not add a service.
+See [custom upstreams, Docker and remote pages through SSH](docs/upstreams.md).
+
+## What a receipt tells you
+
+A receipt records requested and reported models, provider, tokens, cost,
+timing, body hashes and findings. Model names, provider names, token counts
+and provider-reported cost come from the provider. Tollglass labels them
+reported. Times, sizes, hashes and errors Tollglass measured itself are observed.
+Missing usage is unknown, never zero.
+
+Cost is reported, estimated from a versioned price table, or unknown.
+Direct OpenAI and Anthropic calls can have estimates; OpenRouter can add a
+signed generation supplement. Supplements can update displayed cost and
+provider without changing the signed base receipt. See [costs](docs/costs.md)
+and the [field reference](docs/receipts.md).
+
+The signature shows the receipt was not changed after your Tollglass signed it.
+It does not show that the provider told the truth, and it does not stop the
+owner of the key from making up a receipt. Tollglass did not check the model itself.
+
+## Share and check receipts
+
+Use your instance's data directory. For a demo, copy the printed directory;
+the following POSIX commands ask for it rather than assuming a path:
+
+```sh
+printf 'Instance data directory: '
+read -r DATA_DIR
+tollglass receipts --data-dir "$DATA_DIR" --limit 0
+tollglass export --data-dir "$DATA_DIR" --out calls.tollglass.json
+tollglass key export --data-dir "$DATA_DIR" --out tollglass.pub
+tollglass key --data-dir "$DATA_DIR"
+```
+
+Confirm the public key or its fingerprint with the instance owner through a
+separate channel before trusting it. Once confirmed:
+
+```sh
+tollglass verify calls.tollglass.json --data-dir "$DATA_DIR" --key tollglass.pub
+```
+
+Verification answers three questions: are the signatures valid, is the signer
+confirmed, and what can the receipts tell you? Exit 0 means valid signatures
+and a confirmed signer, 10 means invalid records, and 11 means valid signatures
+with an unconfirmed signer. An existing matching local key can confirm the
+signer; explicit signer flags take precedence. [Offline verification](docs/verify.md)
+also covers single envelopes and confirming a key id.
+
+Bundles keep signed envelopes. CSV, JSONL and HTML exports are unsigned.
+HTML is a printable statement with a call table. Output files must be new.
+
+## What stays local
+
+By default, Tollglass stores metadata and hashes, without prompt or answer
+text. Optional content storage stays local, for all calls or selected tags;
+the page header shows the current setting. Content never enters receipt
+downloads or exports, even when stored locally. API keys pass through and are
+never stored. Retention defaults to 90 days; 0 keeps records indefinitely.
+
+There is no telemetry. Network contacts are your upstream, OpenRouter's
+optional generation lookup, explicit price downloads and doctor reachability
+checks. Startup does not download prices. Read [privacy and local paths](docs/privacy.md)
+before sharing metadata or enabling content storage.
+
+## Compatibility
+
+All upstream paths forward. Receipt capture covers these POST endpoints:
+
+| API | JSON | Streaming | Captured fields when provided |
+| --- | --- | --- | --- |
+| `/v1/chat/completions` | Yes | SSE | Model, id, provider, finish reason, fingerprint, input/output/cache/reasoning tokens, reported cost |
+| `/v1/responses` | Yes | SSE | Model, id, API status, usage, errors; terminal incomplete/failed status preserved |
+| `/v1/embeddings` | Yes | No | Model and input usage; output tokens stay unknown |
+| Anthropic `/v1/messages` | Yes | SSE | Model, id, stop reason, uncached input, cache reads/writes and output tokens |
+
+All receipts include observed status, timing, sizes and hashes. Interrupted
+streams mark capture incomplete. Direct OpenAI and Ollama streaming chat can
+inject `stream_options.include_usage=true`; OpenRouter requests remain unchanged.
+Presets are OpenAI, Anthropic, OpenRouter and Ollama; custom upstreams can use
+either API shape. This describes API coverage, not testing against live providers.
+
+The local SDK checks exercised Python openai and anthropic, Node openai and
+Anthropic TypeScript. [Examples](examples/README.md#tested-dependencies) record
+the versions. They use the demo or local fake upstreams, with synthetic keys.
+Framework discovery advice in AGENTS.md is not a tested integration claim.
+
+## Commands and docs
+
+`serve`, `demo`, `receipts`, `show`, `export`, `verify`, `key`, `prices` and
+`doctor` are covered in the [command guide](docs/commands.md).
+
+## Install options
+
+The installer verifies SHA-256 checksums before replacing the binary.
+`INSTALL_DIR` selects its destination (default `~/.local/bin`);
+`TOLLGLASS_VERSION` selects a release tag. From a checkout:
+
+```sh
+TOLLGLASS_VERSION=v0.1.0 sh install.sh
+```
+
+For native Windows, download your architecture's `.exe` and `checksums.txt`
+from [Releases](https://github.com/vincentsch/tollglass/releases). In PowerShell,
+for an amd64 download in the current directory:
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\tollglass-windows-amd64.exe
+Get-Content .\checksums.txt | Select-String 'tollglass-windows-amd64.exe'
+.\tollglass-windows-amd64.exe --version
+.\tollglass-windows-amd64.exe demo
+```
+
+Compare the full hash before running the executable. Use the arm64 filename
+on ARM Windows. A checksum detects changed downloads; confirm the publisher
+separately. Native Windows and macOS execution await publication checks.
+
+Source builds need Go 1.27.2; `GOTOOLCHAIN=auto` can download the toolchain.
+From a checkout:
+
+```sh
+make build
+./bin/tollglass --version
 make test race lint conformance docs-check
 ```
 
-The [command reference](docs/reference/index.md) is generated from the CLI.
-Run `make docs` after changing commands; only `docs/reference/` is regenerated.
-Builds use version `dev` unless you supply `VERSION`. For release assets, run
-`make build-all VERSION=0.1.0 COMMIT=<commit>`; the six binaries and their
-`checksums.txt` are written to `dist/`. Release tags use `v0.1.0`, while the
-binary reports `0.1.0`.
-
-Tests use local fake servers and the documented fixtures in `testdata/`.
-For an SDK check, install `openai`, `anthropic` and `cryptography` in a temporary
-Python environment and `openai` plus `@anthropic-ai/sdk` in a temporary Node
-environment, then run `scripts/sdk-smoke.py` with that Python interpreter,
-`--binary` pointing
-to the built binary and `--node-module` pointing to the installed Node `openai`
-package, and `--anthropic-node-module` pointing to `@anthropic-ai/sdk`.
-Run `scripts/demo-smoke.py --binary bin/tollglass` with the same Python
-environment to check the built demo, signatures, totals and cleanup.
-The script checks streaming and JSON calls, embeddings, byte hashes, stored
-usage, signatures and shutdown. It uses local fakes and synthetic credentials.
-
-
-## Read and share receipts
+Or install from source:
 
 ```sh
-./bin/tollglass receipts --tag my-project --since 2026-10-01 --json
-./bin/tollglass show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T
-./bin/tollglass export --out calls.tollglass.json
-./bin/tollglass key export --out tollglass.pub
-./bin/tollglass verify calls.tollglass.json --key tollglass.pub
+go install github.com/vincentsch/tollglass/cmd/tollglass@latest
 ```
 
-Reads work while the gateway runs and after it stops. `--data-dir` selects
-local records. Reads never create a key or database. `receipts` shows the
-newest 20 calls; `--limit 0` selects all. Combine `--tag`, `--upstream`,
-`--model`, `--since` and `--until`. Models match the requested or reported
-name exactly, including case. Dates accept RFC 3339 or `YYYY-MM-DD` in UTC;
-`--since` includes its boundary and `--until` excludes it.
-
-`show --json` returns the original signed envelope. Human output wraps long
-values and includes any provider supplement. Missing receipts exit 5.
-
-Exports select all retained receipts unless filtered. The default bundle
-keeps signed receipt and supplement envelopes. `--format jsonl` writes one
-unsigned decoded `{receipt, supplements}` record per line. CSV writes one
-summary row per call; HTML is a self-contained printable spending statement.
-All formats exclude locally stored prompts and answers. CSV and statements
-apply supplement costs once and retain unknown values. Statements show exact
-reported and estimated subtotals, plus unknown-cost coverage.
-
-`--out` is required and must name a new file. Use `--dry-run` to preview an
-export without writing. `--json` keeps command results machine-readable.
-
-Verification works offline without a database. Confirm a sender's public key
-or key id through another channel. A bundle's own key does not confirm its
-signer. Use `--key file.pub` or `--key-id tg_…`; the flags are alternatives.
-Without either, an existing matching local public key confirms the signer.
-A single envelope requires `--key`. Exit 0 means valid signatures and a
-confirmed signer; 10 means invalid records; 11 means valid signatures with
-an unconfirmed or mismatched signer. Usage errors exit 1, runtime errors 2,
-and missing files 5. JSON includes per-envelope results and claim limits.
-Signatures protect the records; they do not check which model ran.
-
-## Check the setup and prices
-
-`tollglass doctor` checks config, writable storage, the key and database,
-the listening port and upstream reachability. Missing initial state is
-information. Unreachable presets are warnings; custom upstreams must answer.
-Any HTTP response counts as reachable, including an authentication error.
-The check sends no credentials and does not validate them. Each failed check
-includes a fix. Exit 2 means at least one failed check; `--json` lists results.
-
-`tollglass prices` shows the selected table, date and SHA-256 without a
-network request. `tollglass prices update` explicitly downloads LiteLLM's
-current table and installs a named snapshot. A failed update keeps the prior
-table. `--dry-run` makes no request or change. Restart a running gateway to
-use a new snapshot; already signed costs never change. The offline demo
-always uses its isolated embedded table.
-
-Run `scripts/conformance.sh` for the CLI contract checks and
-`scripts/receipts-smoke.py --binary bin/tollglass` for offline receipt checks.
+A plain source install reports version `dev`. Go installs in `GOBIN` or
+`$(go env GOPATH)/bin`. `make build-all VERSION=0.1.0 COMMIT=<commit>` creates
+six release binaries and `checksums.txt` in `dist/`; replace `<commit>` with
+the build revision. `make docs` regenerates only `docs/reference/`.
 
 ## License
 
-MIT
+[MIT](LICENSE).

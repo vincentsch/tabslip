@@ -442,3 +442,32 @@ func TestOrdinaryErrorsRenderOnce(t *testing.T) {
 		}
 	}
 }
+
+func TestHumanListLocalTimeAndUnknownCost(t *testing.T) {
+	old := time.Local
+	time.Local = time.FixedZone("test", 2*60*60)
+	t.Cleanup(func() { time.Local = old })
+	dir, _ := seedReads(t)
+	result := runRead(t, dir, "receipts", "--model", "equal")
+	if result.Exit != 0 || !strings.Contains(result.Stdout, "2026-10-19 02:00:00") || strings.Contains(result.Stdout, "unknown USD") || strings.Contains(result.Stdout, "unknown (unknown)") {
+		t.Fatal(result)
+	}
+	rows, err := readCalls(dir, store.Filter{Model: "equal"})
+	if err != nil || len(rows) != 1 {
+		t.Fatal(rows, err)
+	}
+	var out bytes.Buffer
+	renderReceipt(&out, rows[0])
+	for _, line := range strings.Split(out.String(), "\n") {
+		if strings.HasPrefix(line, "| TOTAL ") && !strings.HasPrefix(line, "| TOTAL TIME") && (strings.Count(line, "unknown") != 1 || strings.Contains(line, "USD")) {
+			t.Fatal(line)
+		}
+	}
+	if strings.Contains(out.String(), "| unknown ") {
+		t.Fatal("duplicate unknown cost source", out.String())
+	}
+	result = runRead(t, dir, "receipts", "--model", "equal", "--json")
+	if !strings.Contains(result.Stdout, "2026-10-19T00:00:00.000Z") {
+		t.Fatal(result)
+	}
+}

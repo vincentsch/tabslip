@@ -12,3 +12,8 @@ coverage.*
 *.log
 .DS_Store
 /tmp/
+
+# Runnable examples
+!.env.example
+.venv/
+node_modules

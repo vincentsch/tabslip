@@ -444,7 +444,7 @@ func TestDeleteCascadesAndPromptMatchesCopySource(t *testing.T) {
 	cost := "1"
 	s.Store.SaveSupplement(supplement(r, &cost, nil))
 	s.Store.Flush()
-	for _, path := range []string{"../../README.md", "../../AGENTS.md"} {
+	for _, path := range []string{"../../README.md", "../../AGENTS.md", "../../docs/setup-with-an-agent.md"} {
 		public, err := os.ReadFile(path)
 		if err != nil || !strings.Contains(string(public), SetupPrompt) {
 			t.Fatalf("%s: public setup prompt differs from displayed and copied source: %v", path, err)
@@ -589,4 +589,14 @@ func TestSSEFailureCounterArrivesWhileWriterRemainsStalled(t *testing.T) {
 		}
 	}
 	t.Fatal("no positive counter arrived while the writer was stalled", scan.Err())
+}
+
+func TestUnknownCostHasNoCurrency(t *testing.T) {
+	s, r := fixture(t)
+	for _, path := range []string{"/r/" + r.ID, "/spend"} {
+		body := request(s, path).Body.String()
+		if strings.Contains(body, "unknown USD") || strings.Contains(body, "unknown <small>USD") || strings.Contains(body, "unknown USD (unknown)") {
+			t.Fatalf("%s: unknown cost has currency", path)
+		}
+	}
 }

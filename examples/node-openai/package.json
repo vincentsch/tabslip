@@ -1,0 +1,7 @@
+{
+  "name": "tollglass-openai-example",
+  "private": true,
+  "type": "module",
+  "scripts": {"start": "node example.mjs"},
+  "dependencies": {"openai": "7.39.0"}
+}

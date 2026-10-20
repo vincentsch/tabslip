@@ -153,7 +153,11 @@ func chart(days []*spendGroup) template.HTML {
 		if height < 2 && d.Total.Calls > 0 {
 			height = 2
 		}
-		fmt.Fprintf(&b, `<rect x="%d" y="%.2f" width="20" height="%.2f" rx="2"><title>%s: %d calls; %s USD; reported %s; estimated %s; %d unknown</title></rect>`, i*30+5, 165-height, height, d.Name, d.Total.Calls, d.Total.Amount(), d.Total.Reported(), d.Total.Estimated(), d.Total.Unknown)
+		amount := d.Total.Amount()
+		if amount != "unknown" {
+			amount += " USD"
+		}
+		fmt.Fprintf(&b, `<rect x="%d" y="%.2f" width="20" height="%.2f" rx="2"><title>%s: %d calls; %s; reported %s; estimated %s; %d unknown</title></rect>`, i*30+5, 165-height, height, d.Name, d.Total.Calls, amount, d.Total.Reported(), d.Total.Estimated(), d.Total.Unknown)
 	}
 	b.WriteString(`</svg>`)
 	return template.HTML(b.String())
