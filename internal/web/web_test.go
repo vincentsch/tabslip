@@ -153,6 +153,15 @@ func TestAccessBoundaryCoversLocalRoutesAndAllowsProxy(t *testing.T) {
 			}
 		}
 	}
+	for _, path := range []string{"/", "/setup", "/style.css"} {
+		req := httptest.NewRequest("GET", "http://127.0.0.1:14545"+path, nil)
+		req.RemoteAddr = "127.0.0.1:12"
+		w := httptest.NewRecorder()
+		s.ServeHTTP(w, req)
+		if w.Code != http.StatusForbidden {
+			t.Fatalf("%s: mismatched local Host port accepted: %d", path, w.Code)
+		}
+	}
 	for _, origin := range []string{"", "http://evil.example:4545"} {
 		w := post(s, "/settings", url.Values{"token": {s.token}, "retention_days": {"0"}}, origin)
 		if w.Code != 403 {

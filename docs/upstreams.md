@@ -46,7 +46,9 @@ existing instance or changing its listen address.
 ## A server beside your app
 
 Run Tollglass beside the app and use its loopback address. Reach the page with
-`ssh -N -L 14545:127.0.0.1:4545 user@server`, then open
-`http://127.0.0.1:14545`. Substitute the remote port you selected.
+`ssh -N -L 4545:127.0.0.1:4545 user@server`, then open
+`http://127.0.0.1:4545`. The local port must equal the remote Tollglass port
+because the page checks the port in the browser's Host header. Use the selected
+port on both sides and in the local page URL. That local port must be free.
 The tunnel ends with Ctrl+C. Tollglass must keep running while the app routes
 through it. See the setup guide for detached start, owned-process stop and undo.

@@ -238,11 +238,13 @@ Tollglass can run beside an app on a server. Point that app at the server's
 local gateway, and view its page through SSH:
 
 ```sh
-ssh -N -L 14545:127.0.0.1:4545 user@server
+ssh -N -L 4545:127.0.0.1:4545 user@server
 ```
 
-Open `http://127.0.0.1:14545` locally. Keep the selected remote port in the
-forward if it differs from 4545. Stop the tunnel with Ctrl+C.
+Open `http://127.0.0.1:4545` locally. The local port must equal the remote
+Tollglass port because the page checks the port in the browser's Host header.
+Use the selected port on both sides if it differs from 4545, and in the local
+page URL. That local port must be free. Stop the tunnel with Ctrl+C.
 
 ## Costs, storage and stopping
 
