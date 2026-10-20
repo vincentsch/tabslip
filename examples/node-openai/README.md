@@ -1,6 +1,6 @@
 # One OpenAI chat request
 
-Run from this directory. Node.js 20+ and the SDK in package.json are required.
+Run from this directory. Node.js 22+ and the SDK in package.json are required.
 See [tested dependencies](../README.md#tested-dependencies).
 
 ```sh

@@ -35,7 +35,7 @@ They are tested versions, rather than a claim about all compatible SDK releases.
 Python cryptography 50.0.2 independently verifies SDK smoke-test
 signatures; it is not required by the examples.
 
-Python examples need Python 3.10+, Node needs Node.js 20+, and curl needs a POSIX
+Python examples need Python 3.10+, Node needs Node.js 22+, and curl needs a POSIX
 shell. `.env` files are optional local configuration, loaded explicitly with
 `set -a; . ./.env; set +a` in the per-example instructions. Keep credentials
 in the project's existing secret source in an application.
