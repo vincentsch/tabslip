@@ -72,3 +72,69 @@ func DataDir() string {
 	}
 	return filepath.Join(h, ".local", "share", "tollglass")
 }
+
+// SaveSettings replaces only settings owned by the local page. Other YAML nodes,
+// including custom upstreams and comments, survive the atomic replacement.
+// A startup override leaves the existing keep_content node untouched.
+func SaveSettings(path string, c Config, keepContentLocked bool) error {
+	var doc yaml.Node
+	b, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("cannot read config file")
+	}
+	if len(b) == 0 {
+		b = []byte("{}\n")
+	}
+	if yaml.Unmarshal(b, &doc) != nil || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
+		return fmt.Errorf("config file is malformed; check its YAML settings")
+	}
+	for _, v := range []struct {
+		name  string
+		value any
+	}{{"keep_content", c.KeepContent}, {"keep_content_tags", c.KeepContentTags}, {"retention_days", c.RetentionDays}} {
+		if keepContentLocked && v.name == "keep_content" {
+			continue
+		}
+		var node yaml.Node
+		if err = node.Encode(v.value); err != nil {
+			return err
+		}
+		m := doc.Content[0]
+		found := false
+		for i := 0; i < len(m.Content); i += 2 {
+			if m.Content[i].Value == v.name {
+				m.Content[i+1] = &node
+				found = true
+				break
+			}
+		}
+		if !found {
+			m.Content = append(m.Content, &yaml.Node{Kind: yaml.ScalarNode, Value: v.name}, &node)
+		}
+	}
+	b, err = yaml.Marshal(&doc)
+	if err != nil {
+		return fmt.Errorf("cannot encode settings")
+	}
+	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return fmt.Errorf("cannot create config directory")
+	}
+	f, err := os.CreateTemp(filepath.Dir(path), ".tollglass-config-*")
+	if err != nil {
+		return fmt.Errorf("cannot create config file")
+	}
+	defer os.Remove(f.Name())
+	if _, err = f.Write(b); err == nil {
+		err = f.Sync()
+	}
+	if e := f.Close(); err == nil {
+		err = e
+	}
+	if err == nil {
+		err = os.Rename(f.Name(), path)
+	}
+	if err != nil {
+		return fmt.Errorf("cannot save config file; check directory permissions and free space")
+	}
+	return nil
+}

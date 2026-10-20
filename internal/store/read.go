@@ -49,6 +49,8 @@ func (r *Reader) KeyID() (string, error) {
 type Filter struct {
 	Tag, Upstream, Model, Since, Until string
 	Limit                              int
+	Search, Status, Cursor, CursorID   string
+	FindingsOnly, Slowest              bool
 }
 
 func Date(s string) (string, error) {
@@ -136,41 +138,7 @@ func (r *Reader) Get(id string) (Call, error) {
 	return calls[0], nil
 }
 func (r *Reader) calls(f Filter, id string) ([]Call, error) {
-	where := []string{"1=1"}
-	args := []any{}
-	for _, p := range []struct{ col, val string }{{"id", id}, {"tag", f.Tag}, {"upstream", f.Upstream}} {
-		if p.val != "" {
-			where = append(where, p.col+"=?")
-			args = append(args, p.val)
-		}
-	}
-	if f.Model != "" {
-		where = append(where, "(requested_model=? OR reported_model=?)")
-		args = append(args, f.Model, f.Model)
-	}
-	// Stored timestamps have millisecond precision. Round bounds upward so both
-	// inclusive since and exclusive until retain their meaning for finer input.
-	boundary := func(s string) string {
-		t, _ := time.Parse(time.RFC3339Nano, s)
-		rounded := t.Truncate(time.Millisecond)
-		if rounded.Before(t) {
-			rounded = rounded.Add(time.Millisecond)
-		}
-		return receipt.Timestamp(rounded)
-	}
-	if f.Since != "" {
-		where = append(where, "started_at>=?")
-		args = append(args, boundary(f.Since))
-	}
-	if f.Until != "" {
-		where = append(where, "started_at<?")
-		args = append(args, boundary(f.Until))
-	}
-	selection := " FROM receipts WHERE " + strings.Join(where, " AND ") + " ORDER BY started_at DESC,id DESC"
-	if f.Limit > 0 {
-		selection += " LIMIT ?"
-		args = append(args, f.Limit)
-	}
+	selection, args := selection(f, id)
 	query := "SELECT id,started_at,tag,upstream,api,requested_model,reported_model,provider,status,input_tokens,output_tokens,cost_amount,cost_source,ttfb_ms,total_ms,envelope" + selection
 	// A read transaction keeps summaries and supplement envelopes from the same snapshot.
 	tx, err := r.db.Begin()
@@ -210,9 +178,8 @@ func (r *Reader) calls(f Filter, id string) ([]Call, error) {
 		byID[c.Summary.ID] = c
 	}
 	if len(calls) > 0 {
-		// Keep supplements as the outer scan: receipt_id has no index, and
-		// probing supplements separately for each selected receipt is quadratic.
-		sr, e := tx.Query("SELECT s.receipt_id,s.envelope FROM supplements AS s CROSS JOIN (SELECT id"+selection+") AS selected ON selected.id=s.receipt_id ORDER BY s.rowid", args...)
+		// Join the same selected receipts once, using the supplement receipt index.
+		sr, e := tx.Query("SELECT s.receipt_id,s.envelope FROM (SELECT id"+selection+") AS selected JOIN supplements AS s ON selected.id=s.receipt_id ORDER BY s.rowid", args...)
 		if e != nil {
 			return nil, e
 		}
@@ -250,4 +217,65 @@ func (r *Reader) calls(f Filter, id string) ([]Call, error) {
 		}
 	}
 	return calls, tx.Commit()
+}
+
+func selection(f Filter, id string) (string, []any) {
+	where := []string{"1=1"}
+	args := []any{}
+	for _, p := range []struct{ col, val string }{{"id", id}, {"tag", f.Tag}, {"upstream", f.Upstream}} {
+		if p.val != "" {
+			where = append(where, p.col+"=?")
+			args = append(args, p.val)
+		}
+	}
+	if f.Model != "" {
+		where = append(where, "(requested_model=? OR reported_model=?)")
+		args = append(args, f.Model, f.Model)
+	}
+	// Stored timestamps have millisecond precision. Round bounds upward so both
+	// inclusive since and exclusive until retain their meaning for finer input.
+	boundary := func(s string) string {
+		t, _ := time.Parse(time.RFC3339Nano, s)
+		rounded := t.Truncate(time.Millisecond)
+		if rounded.Before(t) {
+			rounded = rounded.Add(time.Millisecond)
+		}
+		return receipt.Timestamp(rounded)
+	}
+	if f.Since != "" {
+		where = append(where, "started_at>=?")
+		args = append(args, boundary(f.Since))
+	}
+	if f.Until != "" {
+		where = append(where, "started_at<?")
+		args = append(args, boundary(f.Until))
+	}
+
+	if f.Search != "" {
+		where = append(where, "(instr(lower(id || ' ' || coalesce(tag,'') || ' ' || upstream || ' ' || coalesce(requested_model,'') || ' ' || coalesce(reported_model,'') || ' ' || coalesce(provider,'')), lower(?))>0)")
+		args = append(args, f.Search)
+	}
+	if f.FindingsOnly {
+		where = append(where, "has_findings=1")
+	}
+	if f.Status == "ok" {
+		where = append(where, "status BETWEEN 200 AND 399")
+	}
+	if f.Status == "error" {
+		where = append(where, "(status>=400 OR status IS NULL)")
+	}
+	order := "started_at"
+	if f.Slowest {
+		order = "total_ms"
+	}
+	if f.CursorID != "" {
+		where = append(where, "("+order+" < ? OR ("+order+" = ? AND id < ?))")
+		args = append(args, f.Cursor, f.Cursor, f.CursorID)
+	}
+	selection := " FROM receipts WHERE " + strings.Join(where, " AND ") + " ORDER BY " + order + " DESC,id DESC"
+	if f.Limit > 0 {
+		selection += " LIMIT ?"
+		args = append(args, f.Limit)
+	}
+	return selection, args
 }

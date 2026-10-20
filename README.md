@@ -6,8 +6,8 @@ the requested and reported model, token usage,
 timing, body hashes and findings. Model names and usage come from the provider.
 The signature shows that the receipt has not changed since your Tollglass signed it.
 
-This is an early source build. The local page is not available yet.
-Receipts include reported or estimated costs and can be read and exported from the terminal.
+Open the local page to browse live calls, receipts, spend and setup.
+Receipts include reported or estimated costs and can also be read and exported from the terminal.
 
 ## Start the gateway
 
@@ -97,7 +97,54 @@ reads your normal config. Ctrl+C removes its temporary data; use
 `--json` prints one object after the eight receipts and one signed supplement
 are stored. It includes the base URLs, data dir, key id and command examples.
 Use the printed export, key-export and verify commands with the demo directory.
-The local page will be available in a later source build.
+Open the printed Page URL to browse the eight calls. The banner marks all demo data as simulated.
+
+## Open the local page
+
+Open `http://127.0.0.1:4545` after starting the gateway. Use `--open` to
+launch your browser when starting it; otherwise Tollglass opens nothing.
+The page shares the gateway's port and makes no external requests.
+
+Calls updates live. Filter by tag, upstream, requested or reported model,
+status and dates, or show only calls with findings. Search covers receipt ids,
+tags, upstreams, models and reported providers. It never searches stored
+content. Choose newest first or slowest first, then use Load more for older
+rows. Press `/` for search, `j` and `k` to move, Enter to open, and Esc to
+clear filters. The theme toggle remembers your choice.
+
+Open a receipt for its paper view, original signed findings, provider
+supplement, body hashes and any locally stored content. The SIGNED stamp
+checks the base envelope and its supplements with your local public key.
+A changed signature, signer or supplement linkage shows INVALID. The
+signature does not establish whether a provider's claims are true.
+Downloads contain the original content-free envelope. Delete removes the
+receipt, supplements and content from this instance; external copies remain.
+
+Spend shows exact reported and estimated subtotals and unknown-cost coverage.
+Today starts at UTC midnight. Seven and thirty days include today and the
+preceding six or twenty-nine dates. Tag and date filters apply to all tiles,
+bars and tables. Delayed provider supplements update the open page too.
+
+Setup has base URLs, SDK examples, the public key and content settings.
+Saving writes the selected config file atomically and preserves custom
+upstreams. Content can be kept for all calls or selected tags, starting with
+calls that begin after saving. Retention changes delete older receipts,
+supplements and content immediately, then daily; 0 keeps all receipts.
+An explicit `--keep-content` flag disables its corresponding page control.
+
+Pages, live events, downloads and settings accept loopback connections and
+local Host headers only, even with `--listen 0.0.0.0`. Proxy routes still use
+the chosen listen address. Use an SSH tunnel to view a gateway elsewhere.
+Changes need the page's token and a same-origin POST. No CORS access is enabled.
+
+The Setup page displays and copies this prompt from one source constant:
+
+```text
+Set up Tollglass for this project.
+Use https://github.com/vincentsch/tollglass: read its AGENTS.md and follow
+the steps. Route this project's AI API calls through it, make one real call,
+and show me the receipt.
+```
 
 ## How costs work
 

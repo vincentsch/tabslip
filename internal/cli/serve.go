@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"runtime"
 	"strconv"
@@ -27,6 +28,7 @@ import (
 	"github.com/vincentsch/tollglass/internal/store"
 	"github.com/vincentsch/tollglass/internal/upstream"
 	"github.com/vincentsch/tollglass/internal/version"
+	"github.com/vincentsch/tollglass/internal/web"
 )
 
 func NewApp() *rungrad.App {
@@ -66,12 +68,13 @@ func NewApp() *rungrad.App {
 	})
 	var dataDir, listen string
 	var port int
-	var keep bool
+	var keep, openPage bool
 	root := app.Root()
 	root.PersistentFlags().StringVar(&dataDir, "data-dir", config.DataDir(), "Directory for local receipts and the instance key")
 	root.PersistentFlags().StringVar(&listen, "listen", "127.0.0.1", "Address to listen on")
 	root.PersistentFlags().IntVar(&port, "port", 4545, "Port to listen on")
 	root.PersistentFlags().BoolVar(&keep, "keep-content", false, "Keep request and answer content locally")
+	root.PersistentFlags().BoolVar(&openPage, "open", false, "Open the local page in your browser")
 	command := &rungrad.Command{
 		Use:         "serve",
 		Short:       "Start the local AI gateway",
@@ -101,7 +104,8 @@ func NewApp() *rungrad.App {
 			if f.Flags.DryRun {
 				return f.WritePreview(output.DryRunPreview{Method: "START", Path: net.JoinHostPort(c.Listen, strconv.Itoa(c.Port)), Body: []output.Field{{Name: "action", Value: "would create the instance key and database, then start forwarding calls"}, {Name: "content", Value: strconv.FormatBool(c.KeepContent)}}})
 			}
-			return serve(f, c, dataDir)
+			locked := cmd.Flags().Changed("keep-content") || root.PersistentFlags().Changed("keep-content")
+			return serve(f, c, dataDir, locked, openPage)
 		}}
 	app.AddCommand(command)
 	app.AddCommand(demoCommand(&dataDir))
@@ -118,7 +122,7 @@ func NewApp() *rungrad.App {
 	}
 	return app
 }
-func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
+func serve(f *rungrad.Factory, c config.Config, dataDir string, locked, openPage bool) error {
 	address := net.JoinHostPort(c.Listen, strconv.Itoa(c.Port))
 	ln, err := net.Listen("tcp", address)
 	if err != nil {
@@ -150,10 +154,20 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
 	// Closing active sockets after the grace period still lets deferred capture finish.
 	activeCtx, cancelActive := context.WithCancel(context.Background())
 	defer cancelActive()
-	server := &http.Server{Handler: gateway, ReadHeaderTimeout: 10 * time.Second, BaseContext: func(net.Listener) context.Context { return activeCtx }, ErrorLog: log.New(io.Discard, "", 0)}
+	pageHost := c.Listen
+	if ip := net.ParseIP(pageHost); ip != nil && ip.IsUnspecified() {
+		pageHost = "127.0.0.1"
+		if ip.To4() == nil {
+			pageHost = "::1"
+		}
+	}
+	page := "http://" + net.JoinHostPort(pageHost, strconv.Itoa(c.Port))
+	local := web.New(db, c, f.ConfigPath(), page, us, false, locked)
+	defer local.Close()
+	gateway.Settings = local.Settings
+	server := &http.Server{Handler: local.Handler(gateway), ReadHeaderTimeout: 10 * time.Second, BaseContext: func(net.Listener) context.Context { return activeCtx }, ErrorLog: log.New(io.Discard, "", 0)}
 	finished := make(chan error, 1)
 	go func() { finished <- server.Serve(ln) }()
-	page := "http://" + net.JoinHostPort(c.Listen, strconv.Itoa(c.Port))
 	urls := map[string]string{}
 	for _, name := range upstream.Names(us) {
 		u := page + "/" + name
@@ -189,6 +203,11 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
 		<-finished
 		return err
 	}
+	if openPage {
+		if err = openBrowser(page); err != nil {
+			logger.Print("Cannot open the browser. Open the Page URL above.")
+		}
+	}
 	select {
 	case err = <-finished:
 		if errors.Is(err, http.ErrServerClosed) {
@@ -197,6 +216,7 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
 		return rungrad.NewError(2, "The gateway stopped unexpectedly.")
 	case <-ctx.Done():
 	}
+	local.Close()
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err = server.Shutdown(shutdownCtx); err != nil {
@@ -236,4 +256,24 @@ func nextPort(port int) int {
 		return 4546
 	}
 	return port + 1
+}
+
+var browserStart = func(name string, args ...string) error {
+	cmd := exec.Command(name, args...)
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+	go cmd.Wait()
+	return nil
+}
+
+func openBrowser(page string) error {
+	switch runtime.GOOS {
+	case "darwin":
+		return browserStart("open", page)
+	case "windows":
+		return browserStart("rundll32", "url.dll,FileProtocolHandler", page)
+	default:
+		return browserStart("xdg-open", page)
+	}
 }

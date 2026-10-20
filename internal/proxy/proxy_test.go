@@ -788,3 +788,53 @@ func TestClientWriteFailureDoesNotBlameUpstream(t *testing.T) {
 	}
 	requireClientInterruption(t, take(t, s).r)
 }
+
+func TestContentSettingsSnapshotPerCallAndTag(t *testing.T) {
+	started, release := make(chan struct{}), make(chan struct{})
+	raw := fixture(t, "chat.json")
+	g, rec, srv := gateway(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Stall") == "yes" {
+			close(started)
+			<-release
+		}
+		w.Write(raw)
+	}, false)
+	var mu sync.Mutex
+	settings := config.Default()
+	g.Settings = func() config.Config { mu.Lock(); defer mu.Unlock(); return settings }
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		req, _ := http.NewRequest("POST", srv.URL+"/local/v1/chat/completions", strings.NewReader(`{"model":"gpt-4.1","messages":[]}`))
+		req.Header.Set("X-Stall", "yes")
+		resp, err := srv.Client().Do(req)
+		if err == nil {
+			io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+		}
+	}()
+	<-started
+	mu.Lock()
+	settings.KeepContentTags = []string{"client-a"}
+	mu.Unlock()
+	close(release)
+	<-done
+	if take(t, rec).c != nil {
+		t.Fatal("setting changed content capture for an in-flight call")
+	}
+	call(t, srv, []byte(`{"model":"gpt-4.1","messages":[]}`), "client-a")
+	if take(t, rec).c == nil {
+		t.Fatal("selected tag content missing")
+	}
+	call(t, srv, []byte(`{"model":"gpt-4.1","messages":[]}`), "client-b")
+	if take(t, rec).c != nil {
+		t.Fatal("content stored for an unselected tag")
+	}
+	mu.Lock()
+	settings.KeepContent = true
+	mu.Unlock()
+	call(t, srv, []byte(`{"model":"gpt-4.1","messages":[]}`), "client-b")
+	if take(t, rec).c == nil {
+		t.Fatal("all-call content missing")
+	}
+}

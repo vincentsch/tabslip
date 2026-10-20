@@ -23,6 +23,7 @@ import (
 	"github.com/vincentsch/tollglass/internal/proxy"
 	"github.com/vincentsch/tollglass/internal/store"
 	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tollglass/internal/web"
 )
 
 func demoCommand(dataDir *string) *rungrad.Command {
@@ -40,11 +41,14 @@ func demoCommand(dataDir *string) *rungrad.Command {
 			}
 			defer os.RemoveAll(dir)
 		}
-		return runDemo(f, dir)
+		openPage, _ := cmd.Flags().GetBool("open")
+		keep, _ := cmd.Flags().GetBool("keep-content")
+		locked := cmd.Flags().Changed("keep-content") || cmd.Root().PersistentFlags().Changed("keep-content")
+		return runDemo(f, dir, openPage, keep, locked)
 	}}
 }
 func shellQuote(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
-func runDemo(f *rungrad.Factory, dir string) error {
+func runDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool) error {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return rungrad.NewError(2, "Cannot listen on a free demo port.")
@@ -58,16 +62,21 @@ func runDemo(f *rungrad.Factory, dir string) error {
 	target, _ := url.Parse("http://demo.invalid")
 	c := config.Default()
 	c.RetentionDays = 0
+	c.KeepContent = keep
 	worker := &enrich.Worker{Lookup: demo.Lookup, Save: db.SaveSupplement}
 	defer worker.Wait()
 	gateway := &proxy.Gateway{Upstreams: map[string]upstream.Upstream{"demo": {Name: "demo", URL: target, API: "openai"}}, Config: c, KeyID: db.KeyID, Store: db, Transport: demo.Transport{}, Demo: true, Enrich: worker.Schedule}
-	server := &http.Server{Handler: gateway, ReadHeaderTimeout: 10 * time.Second}
+	page := "http://" + ln.Addr().String()
+	c.Port = ln.Addr().(*net.TCPAddr).Port
+	local := web.New(db, c, filepath.Join(dir, "config.yaml"), page, gateway.Upstreams, true, locked)
+	defer local.Close()
+	gateway.Settings = local.Settings
+	server := &http.Server{Handler: local.Handler(gateway), ReadHeaderTimeout: 10 * time.Second}
 	finished := make(chan error, 1)
 	go func() { finished <- server.Serve(ln) }()
 	defer func() { server.Close(); <-finished; gateway.Wait() }()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
-	page := "http://" + ln.Addr().String()
 	transport := &http.Transport{Proxy: nil}
 	defer transport.CloseIdleConnections()
 	client := &http.Client{Transport: transport, Timeout: 10 * time.Second}
@@ -91,11 +100,17 @@ func runDemo(f *rungrad.Factory, dir string) error {
 		for _, name := range []string{"export", "key_export", "verify"} {
 			fmt.Fprintln(w, commands[name])
 		}
-		fmt.Fprintln(w, "\nPress Ctrl+C to stop. The local page is coming in a later source build.")
+		fmt.Fprintln(w, "\nPress Ctrl+C to stop.")
 	}); err != nil {
 		return err
 	}
+	if openPage {
+		if openBrowser(page) != nil {
+			fmt.Fprintln(f.Stderr, "Cannot open the browser. Open the Page URL above.")
+		}
+	}
 	<-ctx.Done()
+	local.Close()
 	shutdown, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if server.Shutdown(shutdown) != nil {

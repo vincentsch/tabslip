@@ -42,6 +42,7 @@ type Gateway struct {
 	Enrich    func(*receipt.Receipt, string)
 	Prices    *prices.Table
 	Demo      bool
+	Settings  func() config.Config
 }
 
 var sharedTransport = Transport()
@@ -120,8 +121,12 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if tagPattern.MatchString(tag) {
 			r.Request.Tag = tag
 		}
-		keep := g.Config.KeepContent
-		for _, t := range g.Config.KeepContentTags {
+		settings := g.Config
+		if g.Settings != nil {
+			settings = g.Settings()
+		}
+		keep := settings.KeepContent
+		for _, t := range settings.KeepContentTags {
 			if t == r.Request.Tag && t != "" {
 				keep = true
 			}

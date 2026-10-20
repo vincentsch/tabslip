@@ -134,3 +134,18 @@ func TestDemoDryRunIgnoresNormalConfigAndCreatesNothing(t *testing.T) {
 		t.Fatal("normal config changed")
 	}
 }
+
+func TestBrowserOpenIsExplicitAndUsesConfiguredURL(t *testing.T) {
+	original := browserStart
+	defer func() { browserStart = original }()
+	var command string
+	var args []string
+	browserStart = func(name string, a ...string) error { command = name; args = a; return nil }
+	r := testutil.Run(NewApp(), "serve", "--open", "--dry-run", "--json", "--port", "4599", "--data-dir", filepath.Join(t.TempDir(), "data"))
+	if r.Exit != 0 || command != "" {
+		t.Fatal("dry-run launched browser", r)
+	}
+	if err := openBrowser("http://127.0.0.1:4599"); err != nil || command == "" || len(args) == 0 || args[len(args)-1] != "http://127.0.0.1:4599" {
+		t.Fatal("configured URL lost", command, args, err)
+	}
+}

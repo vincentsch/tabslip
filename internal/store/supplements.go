@@ -55,5 +55,5 @@ func (s *Store) insertSupplement(supplement *receipt.Supplement, envelope []byte
 	if _, err = tx.Exec("UPDATE receipts SET cost_amount=?,cost_source=?,provider=?,has_findings=? WHERE id=?", cost.Amount, cost.Source, provider, r.HasFindings(), r.ID); err != nil {
 		return err
 	}
-	return tx.Commit()
+	return s.commitChange(tx, "supplement", r.ID)
 }

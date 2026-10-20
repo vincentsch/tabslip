@@ -34,6 +34,7 @@ type Record struct {
 	flushed    chan struct{}
 }
 type Store struct {
+	reader     *Reader
 	db         *sql.DB
 	Key        ed25519.PrivateKey
 	KeyID      string
@@ -43,7 +44,9 @@ type Store struct {
 	closed     bool
 	unrecorded atomic.Int64
 	logger     *log.Logger
-	days       int
+	days       atomic.Int64
+	eventsMu   sync.Mutex
+	subs       map[chan Change]struct{}
 }
 
 func Open(dir string, days int, logger *log.Logger) (*Store, error) {
@@ -91,6 +94,9 @@ func Open(dir string, days int, logger *log.Logger) (*Store, error) {
 	if db.QueryRow("SELECT value FROM meta WHERE name='schema_version'").Scan(&schema) != nil || schema != "1" {
 		return nil, fmt.Errorf("unsupported database schema")
 	}
+	if _, err = db.Exec("CREATE INDEX IF NOT EXISTS receipts_newest ON receipts(started_at DESC,id DESC); CREATE INDEX IF NOT EXISTS receipts_slowest ON receipts(total_ms DESC,id DESC); CREATE INDEX IF NOT EXISTS supplements_receipt ON supplements(receipt_id)"); err != nil {
+		return nil, fmt.Errorf("cannot index receipts")
+	}
 	var id string
 	err = db.QueryRow("SELECT value FROM meta WHERE name='key_id'").Scan(&id)
 	if err != nil && err != sql.ErrNoRows {
@@ -112,9 +118,14 @@ func Open(dir string, days int, logger *log.Logger) (*Store, error) {
 	if err = db.QueryRow("SELECT value FROM meta WHERE name='key_id'").Scan(&bound); err != nil || bound != id {
 		return nil, fmt.Errorf("database key changed during startup; restart with the original key")
 	}
-	s := &Store{db: db, Key: key, KeyID: id, queue: make(chan Record, 1024), done: make(chan struct{}), logger: logger, days: days}
+	s := &Store{db: db, Key: key, KeyID: id, queue: make(chan Record, 1024), done: make(chan struct{}), logger: logger, subs: make(map[chan Change]struct{})}
+	s.days.Store(int64(days))
 	if err = s.retain(time.Now()); err != nil {
 		return nil, fmt.Errorf("cannot apply receipt retention")
+	}
+	s.reader, err = OpenReader(dir)
+	if err != nil {
+		return nil, err
 	}
 	ok = true
 	go s.writeLoop()
@@ -123,6 +134,7 @@ func Open(dir string, days int, logger *log.Logger) (*Store, error) {
 func (s *Store) Unrecorded() int64 { return s.unrecorded.Load() }
 func (s *Store) failed() {
 	s.unrecorded.Add(1)
+	s.publish(Change{Kind: "counter"})
 	if s.logger != nil {
 		s.logger.Print("receipt recording failed")
 	}
@@ -221,13 +233,19 @@ func (s *Store) insert(v Record) error {
 			return err
 		}
 	}
-	return tx.Commit()
+	return s.commitChange(tx, "receipt", r.ID)
 }
 func (s *Store) retain(now time.Time) error {
-	if s.days == 0 {
+	days := int(s.days.Load())
+	if days == 0 {
 		return nil
 	}
-	_, err := s.db.Exec("DELETE FROM receipts WHERE started_at < ?", receipt.Timestamp(now.AddDate(0, 0, -s.days)))
+	result, err := s.db.Exec("DELETE FROM receipts WHERE started_at < ?", receipt.Timestamp(now.AddDate(0, 0, -days)))
+	if err == nil {
+		if count, _ := result.RowsAffected(); count > 0 {
+			s.publish(Change{Kind: "refresh"})
+		}
+	}
 	return err
 }
 func (s *Store) Close() error {
@@ -238,5 +256,8 @@ func (s *Store) Close() error {
 	}
 	s.mu.Unlock()
 	<-s.done
+	if s.reader != nil {
+		s.reader.Close()
+	}
 	return s.db.Close()
 }

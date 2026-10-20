@@ -331,3 +331,96 @@ func TestTerminalProviderErrorsDoNotStoreSensitiveMessages(t *testing.T) {
 		t.Fatal("sensitive error stored or logged")
 	}
 }
+
+func TestNotificationsFollowCommitAndQueueFailuresBypassStalledWriter(t *testing.T) {
+	s := openTest(t, t.TempDir(), 0)
+	defer s.Close()
+	ch, stop := s.Subscribe()
+	defer stop()
+	tx, err := s.db.Begin()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+	r := sample(s, time.Now())
+	raw, err := receipt.Sign(r, s.Key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 1100; i++ {
+		s.Enqueue(Record{Receipt: r, Envelope: raw})
+	}
+	if s.Unrecorded() == 0 {
+		tx.Rollback()
+		t.Fatal("queue did not fill")
+	}
+	select {
+	case c := <-ch:
+		if c.Kind != "counter" && c.Kind != "refresh" {
+			t.Fatal("published a row before commit", c)
+		}
+	case <-time.After(time.Second):
+		tx.Rollback()
+		t.Fatal("stalled writer prevented failure notification")
+	}
+	tx.Rollback()
+	// Drain failed duplicate writes before closing. No successful write is needed
+	// for the counter notification above.
+}
+func TestRetentionSettingsDeleteContentsAndSupplementsAndZeroKeepsAll(t *testing.T) {
+	s := openTest(t, t.TempDir(), 0)
+	defer s.Close()
+	r := sample(s, time.Now().AddDate(0, 0, -40))
+	s.Save(r, &Content{Request: []byte("old"), Response: []byte("old")})
+	s.Flush()
+	p, _ := json.Marshal(r)
+	supp := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p)}
+	s.SaveSupplement(supp)
+	s.Flush()
+	if err := s.SetRetention(0); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Reader().Get(r.ID); err != nil {
+		t.Fatal("zero retention deleted a call")
+	}
+	if err := s.SetRetention(30); err != nil {
+		t.Fatal(err)
+	}
+	for _, table := range []string{"receipts", "supplements", "contents"} {
+		var n int
+		if err := s.db.QueryRow("SELECT count(*) FROM " + table).Scan(&n); err != nil || n != 0 {
+			t.Fatal("retention left rows", table, n, err)
+		}
+	}
+}
+
+func TestSlowSubscribersDoNotBlockNotifications(t *testing.T) {
+	s := openTest(t, t.TempDir(), 0)
+	defer s.Close()
+	events, stop := s.Subscribe()
+	defer stop()
+	quit := make(chan struct{})
+	defer close(quit)
+	go func() {
+		for {
+			select {
+			case <-quit:
+				return
+			case <-events:
+				time.Sleep(time.Microsecond)
+			}
+		}
+	}()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for i := 0; i < 10000; i++ {
+			s.publish(Change{Kind: "receipt", ID: "call"})
+		}
+	}()
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("slow browser held up store notifications")
+	}
+}

@@ -183,3 +183,81 @@ func BenchmarkReadSupplementedReceipts(b *testing.B) {
 		})
 	}
 }
+
+func TestKeysetOrdersCombinedSearchAndActiveFindings(t *testing.T) {
+	s := openTest(t, t.TempDir(), 0)
+	defer s.Close()
+	for i := 0; i < 423; i++ {
+		r := sample(s, time.Date(2026, 10, 20, 0, 0, i/3, 0, time.UTC))
+		r.Time.Total = int64(i / 4)
+		tag := "project"
+		r.Request.Tag = tag
+		s.Save(r, nil)
+		if i%100 == 0 {
+			if err := s.Flush(); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	s.Flush()
+	for _, slow := range []bool{false, true} {
+		f := Filter{Tag: "project", Slowest: slow, Limit: 200}
+		seen := map[string]bool{}
+		var previous Summary
+		for {
+			calls, err := s.Reader().Calls(f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, c := range calls {
+				v := c.Summary
+				if seen[v.ID] {
+					t.Fatal("duplicate cursor row")
+				}
+				seen[v.ID] = true
+				if previous.ID != "" {
+					if slow && (previous.Total < v.Total || (previous.Total == v.Total && previous.ID < v.ID)) {
+						t.Fatal("slowest order lost")
+					}
+					if !slow && (previous.Started < v.Started || (previous.Started == v.Started && previous.ID < v.ID)) {
+						t.Fatal("newest order lost")
+					}
+				}
+				previous = v
+			}
+			if len(calls) == 0 {
+				break
+			}
+			last := calls[len(calls)-1].Summary
+			f.Cursor = last.Started
+			if slow {
+				f.Cursor = fmt.Sprint(last.Total)
+			}
+			f.CursorID = last.ID
+		}
+		if len(seen) != 423 {
+			t.Fatal("pagination lost calls", len(seen))
+		}
+	}
+	r := sample(s, time.Now())
+	asked, reported, provider := "Requested", "Reported", "Original provider"
+	r.Request.Model = &asked
+	r.Response.Model = &reported
+	r.Response.Provider = &provider
+	r.Find("price_unknown", "observed", "Unknown cost.")
+	s.Save(r, &Content{Request: []byte("private word")})
+	s.Flush()
+	c := "0.5"
+	p, _ := json.Marshal(r)
+	supp := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Cost: &c, Currency: "USD"}
+	s.SaveSupplement(supp)
+	s.Flush()
+	active, err := s.Reader().Calls(Filter{Model: "Requested", FindingsOnly: true})
+	if err != nil || len(active) != 0 {
+		t.Fatal("recovered pricing still warns")
+	}
+	active, err = s.Reader().Calls(Filter{Model: "Reported", Search: "ORIGINAL"})
+	if err != nil || len(active) != 1 || len(active[0].Receipt.Findings) != 1 {
+		t.Fatal("combined search or signed findings lost")
+	}
+}
