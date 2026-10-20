@@ -56,16 +56,21 @@ go install github.com/vincentsch/tollglass/cmd/tollglass@latest
 ```
 
 That source install reports `dev` in v0.1. Release binaries report their
-version and commit. Recheck `--version` after installation. Report any PATH
-fix and apply it to this process, for example `export PATH="$HOME/.local/bin:$PATH"`
-(or the selected `INSTALL_DIR`). Go installs to `GOBIN` or `$(go env GOPATH)/bin`.
+version and commit. Recheck `--version` after installation. Respect an existing `INSTALL_DIR`;
+the installer uses it instead of `~/.local/bin`. If the command already resolves,
+keep PATH as it is. Otherwise add only the selected install directory to this
+process and report that fix. Run `command -v tollglass` (PowerShell:
+`(Get-Command tollglass).Source`) and record the resolved executable path.
+Report that path in the final answer, rather than assuming the default.
+Go installs to `GOBIN` or `$(go env GOPATH)/bin`.
 Do not edit shell profiles unless asked.
 
 ## 3. Locate the instance
 
 Use the OS defaults unless the user selected an override. Resolve the config
 file from `--config`, then `TOLLGLASS_CONFIG`, then the default below. Record
-its absolute path. `--data-dir` selects a data override; otherwise use the OS
+its absolute path. When an environment or flag selects a location, use it;
+do not probe fallback locations under the home directory. `--data-dir` selects a data override; otherwise use the OS
 default. Do not create a project-local instance that another session cannot find.
 
 | OS | Default config file | Default data directory |
