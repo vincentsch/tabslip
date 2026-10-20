@@ -23,7 +23,7 @@ class ExampleTest(unittest.TestCase):
 
             def do_POST(self):
                 body = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-                requests.append((self.path, dict(self.headers), body))
+                requests.append((self.path, self.headers, body))
                 result = {
                     "id": "chatcmpl-example", "object": "chat.completion",
                     "created": 1, "model": body["model"],
