@@ -20,6 +20,7 @@ import (
 
 	"github.com/vincentsch/tollglass/internal/apis"
 	"github.com/vincentsch/tollglass/internal/config"
+	"github.com/vincentsch/tollglass/internal/prices"
 	"github.com/vincentsch/tollglass/internal/receipt"
 	"github.com/vincentsch/tollglass/internal/store"
 	"github.com/vincentsch/tollglass/internal/upstream"
@@ -38,6 +39,8 @@ type Gateway struct {
 	Transport http.RoundTripper
 	Logger    *log.Logger
 	active    sync.WaitGroup
+	Enrich    func(*receipt.Receipt, string)
+	Demo      bool
 }
 
 var sharedTransport = Transport()
@@ -89,7 +92,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		JSON(w, 404, map[string]any{"error": map[string]any{"type": "unknown_upstream", "message": "Choose a configured upstream.", "upstreams": upstream.Names(g.Upstreams)}})
 		return
 	}
-	api := apis.Endpoint(u.API, req.Method, path)
+	apiKind := u.API
+	if g.Demo && name == "demo" && path == "/v1/messages" {
+		apiKind = "anthropic"
+	}
+	api := apis.Endpoint(apiKind, req.Method, path)
 	tracked := api != ""
 	var r *receipt.Receipt
 	var capture *apis.Capture
@@ -169,7 +176,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				content.Truncated = content.Truncated || capture.Truncated
 			}
 			apis.Finish(r)
+			prices.Embedded.Apply(r)
 			g.Store.Save(r, content)
+			if g.Enrich != nil && ((name == "openrouter" && g.Config.EnrichOpenrouter) || (g.Demo && name == "demo")) {
+				g.Enrich(r, req.Header.Get("Authorization"))
+			}
 		}()
 		body := req.Body
 		if body == nil {

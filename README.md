@@ -7,7 +7,7 @@ timing, body hashes and findings. Model names and usage come from the provider.
 The signature shows that the receipt has not changed since your Tollglass signed it.
 
 This is an early source build. The local page and receipt commands
-are not available yet. Cost is recorded as unknown.
+are not available yet. Receipts now include reported or estimated costs.
 
 ## Start the gateway
 
@@ -80,6 +80,54 @@ if any category is unknown, the total is unknown. One-hour cache writes are
 part of total writes and are never counted twice. Embeddings record input
 usage with output tokens left null.
 
+## Try the offline demo
+
+```sh
+./bin/tollglass demo
+```
+
+The demo sends eight simulated calls through the gateway on a free local port.
+It includes chat, embeddings and Anthropic Messages, plus a simulated fallback,
+a rate limit and a response without usage. It accepts later calls with normal
+SDK model names and ignores API keys. It makes no external network requests.
+
+Demo data, keys and prices stay separate from your normal setup. The demo never
+reads your normal config. Ctrl+C removes its temporary data; use
+`--data-dir ./demo-data` to keep it. `--dry-run` creates no state or listener.
+`--json` prints one object after the eight receipts and one signed supplement
+are stored. It includes the base URLs, data dir, key id and command examples.
+The page and export, key-export and verify commands will be available in a
+later source build; their printed examples already use the demo directory.
+
+## How costs work
+
+A receipt uses a provider's reported `usage.cost` when present, including zero.
+For direct OpenAI and Anthropic calls, Tollglass also calculates an estimate
+from an embedded LiteLLM price snapshot. Lookup stays within that provider's
+namespace, preferring the reported model, then the requested model, then names
+without a date suffix. A reported cost keeps the estimate beside it for
+comparison. Missing prices or usage leave the cost unknown.
+
+Estimates charge cached input and Anthropic cache writes at their own rates.
+Anthropic input is already uncached; reasoning tokens are already part of
+OpenAI output. Embeddings are priced from input alone. Calculations use exact
+decimals and store 12 fractional digits with half-up rounding. Each attempted
+direct-provider lookup records the table version, including a price miss.
+OpenRouter, Ollama and custom upstreams receive no price-table estimates.
+
+For OpenRouter, Tollglass fetches generation details after the response finishes.
+It tries up to three times within ten seconds, using the client's authorization
+in memory. `enrich_openrouter: false` disables this. Failed lookups leave the
+receipt usable and do not affect the client response. Generation details form
+a separate signed supplement with provider attempts, native tokens and region.
+Its cost takes precedence in the database summary and is counted once. The
+original signed receipt stays unchanged.
+
+Server startup never downloads prices. The committed snapshot comes from
+LiteLLM revision `4818b767d8b4c4e5fa9885ab953d6f5cfe7c7ca5`.
+Developers can reproduce it with `go generate ./internal/prices`.
+The runtime price-update command will be available in a later source build.
+
 ## Configuration and local data
 
 Tollglass reads `--config`, then `TOLLGLASS_CONFIG`, then
@@ -150,6 +198,8 @@ environment, then run `scripts/sdk-smoke.py` with that Python interpreter,
 `--binary` pointing
 to the built binary and `--node-module` pointing to the installed Node `openai`
 package, and `--anthropic-node-module` pointing to `@anthropic-ai/sdk`.
+Run `scripts/demo-smoke.py --binary bin/tollglass` with the same Python
+environment to check the built demo, signatures, totals and cleanup.
 The script checks streaming and JSON calls, embeddings, byte hashes, stored
 usage, signatures and shutdown. It uses local fakes and synthetic credentials.
 

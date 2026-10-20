@@ -27,9 +27,11 @@ type Content struct {
 	Truncated bool
 }
 type Record struct {
-	Receipt  *receipt.Receipt
-	Envelope []byte
-	Content  *Content
+	Receipt    *receipt.Receipt
+	Envelope   []byte
+	Content    *Content
+	Supplement *receipt.Supplement
+	flushed    chan struct{}
 }
 type Store struct {
 	db         *sql.DB
@@ -125,18 +127,27 @@ func (s *Store) failed() {
 		s.logger.Print("receipt recording failed")
 	}
 }
+func (s *Store) recordFailed(r Record) {
+	if r.Supplement != nil {
+		if s.logger != nil {
+			s.logger.Print("supplement recording failed")
+		}
+		return
+	}
+	s.failed()
+}
 func (s *Store) Enqueue(r Record) bool {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if s.closed {
-		s.failed()
+		s.recordFailed(r)
 		return false
 	}
 	select {
 	case s.queue <- r:
 		return true
 	default:
-		s.failed()
+		s.recordFailed(r)
 		return false
 	}
 }
@@ -146,7 +157,20 @@ func (s *Store) Save(r *receipt.Receipt, c *Content) {
 		s.failed()
 		return
 	}
-	s.Enqueue(Record{r, b, c})
+	s.Enqueue(Record{Receipt: r, Envelope: b, Content: c})
+}
+
+// Flush waits until all previously queued writes have been attempted.
+func (s *Store) Flush() error {
+	done := make(chan struct{})
+	if !s.Enqueue(Record{flushed: done}) {
+		return fmt.Errorf("cannot flush receipt queue")
+	}
+	<-done
+	if s.Unrecorded() != 0 {
+		return fmt.Errorf("some receipts could not be recorded")
+	}
+	return nil
 }
 func (s *Store) writeLoop() {
 	defer close(s.done)
@@ -158,8 +182,12 @@ func (s *Store) writeLoop() {
 			if !ok {
 				return
 			}
+			if r.flushed != nil {
+				close(r.flushed)
+				continue
+			}
 			if s.insert(r) != nil {
-				s.failed()
+				s.recordFailed(r)
 			}
 		case <-t.C:
 			if s.retain(time.Now()) != nil && s.logger != nil {
@@ -169,6 +197,9 @@ func (s *Store) writeLoop() {
 	}
 }
 func (s *Store) insert(v Record) error {
+	if v.Supplement != nil {
+		return s.insertSupplement(v.Supplement, v.Envelope)
+	}
 	r := v.Receipt
 	tx, err := s.db.Begin()
 	if err != nil {

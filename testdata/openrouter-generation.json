@@ -1,0 +1,18 @@
+{
+  "data": {
+    "id": "gen-synthetic",
+    "model": "sao10k/l3-stheno-8b",
+    "provider_name": "Infermatic",
+    "provider_responses": [
+      {"provider_name": "Together", "status": 503, "latency": 10},
+      {"provider_name": "Infermatic", "status": 200, "latency": 20}
+    ],
+    "native_tokens_prompt": 10,
+    "native_tokens_completion": 25,
+    "total_cost": 0.001500,
+    "data_region": "global",
+    "streamed": true,
+    "external_user": "synthetic-ignored-user",
+    "unused": {"message": "synthetic-private-marker"}
+  }
+}

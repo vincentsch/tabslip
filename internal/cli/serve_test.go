@@ -115,3 +115,22 @@ func TestAddressInUseErrors(t *testing.T) {
 		})
 	}
 }
+
+func TestDemoDryRunIgnoresNormalConfigAndCreatesNothing(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "broken.yaml")
+	os.WriteFile(path, []byte("port: [broken"), 0600)
+	t.Setenv("TOLLGLASS_CONFIG", path)
+	data := filepath.Join(dir, "demo-data")
+	r := testutil.Run(NewApp(), "demo", "--dry-run", "--json", "--data-dir", data)
+	if r.Exit != 0 || !strings.Contains(r.Stdout, "eight simulated calls") {
+		t.Fatalf("demo dry run: %+v", r)
+	}
+	if _, err := os.Stat(data); !os.IsNotExist(err) {
+		t.Fatal("dry run created state")
+	}
+	b, _ := os.ReadFile(path)
+	if string(b) != "port: [broken" {
+		t.Fatal("normal config changed")
+	}
+}

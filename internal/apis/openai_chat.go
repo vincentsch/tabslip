@@ -1,5 +1,7 @@
 package apis
 
+import "github.com/vincentsch/tollglass/internal/prices"
+
 func (c *Capture) chat(v map[string]any, stream bool) {
 	r := c.Receipt
 	for k, p := range map[string]**string{"id": &r.Response.ID, "model": &r.Response.Model, "provider": &r.Response.Provider, "system_fingerprint": &r.Response.SystemFingerprint} {
@@ -10,6 +12,10 @@ func (c *Capture) chat(v map[string]any, stream bool) {
 	c.providerError(object(v["error"]))
 	if u := object(v["usage"]); u != nil {
 		r.Usage.Source = "reported"
+		if amount := prices.Decimal(u["cost"]); amount != nil {
+			usd := "USD"
+			r.Cost.Source, r.Cost.Amount, r.Cost.Currency = "reported", amount, &usd
+		}
 		for _, f := range []struct {
 			v any
 			p **int64

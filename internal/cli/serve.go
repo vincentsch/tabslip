@@ -21,6 +21,7 @@ import (
 	rgconfig "github.com/vincentsch/rungrad/config"
 	"github.com/vincentsch/rungrad/output"
 	"github.com/vincentsch/tollglass/internal/config"
+	"github.com/vincentsch/tollglass/internal/enrich"
 	"github.com/vincentsch/tollglass/internal/proxy"
 	"github.com/vincentsch/tollglass/internal/store"
 	"github.com/vincentsch/tollglass/internal/upstream"
@@ -50,7 +51,7 @@ func NewApp() *rungrad.App {
 	command := &rungrad.Command{
 		Use:         "serve",
 		Short:       "Start the local AI gateway",
-		Long:        "Forward API calls and store signed OpenAI chat receipts. Stop with Ctrl+C or SIGTERM. Content is off by default.",
+		Long:        "Forward API calls and store signed receipts with usage and cost. Stop with Ctrl+C or SIGTERM. Content is off by default.",
 		Examples:    []string{"tollglass serve", "tollglass serve --port 4546", "tollglass serve --dry-run --json"},
 		Related:     []string{"tollglass --help"},
 		Args:        cobra.NoArgs,
@@ -79,6 +80,7 @@ func NewApp() *rungrad.App {
 			return serve(f, c, dataDir)
 		}}
 	app.AddCommand(command)
+	app.AddCommand(demoCommand(&dataDir))
 	for _, cmd := range root.Commands() {
 		if cmd.Name() == "serve" {
 			root.RunE = cmd.RunE
@@ -109,6 +111,9 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
 	transport := proxy.Transport()
 	defer transport.CloseIdleConnections()
 	gateway := &proxy.Gateway{Upstreams: us, Config: c, KeyID: db.KeyID, Store: db, Transport: transport, Logger: logger}
+	worker := &enrich.Worker{Lookup: enrich.OpenRouter(transport), Save: db.SaveSupplement}
+	gateway.Enrich = worker.Schedule
+	defer worker.Wait()
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	// Closing active sockets after the grace period still lets deferred capture finish.

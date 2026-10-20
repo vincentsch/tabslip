@@ -41,3 +41,22 @@ These small examples adapt the official references, read on 2026-10-20:
 The error messages contain only synthetic sensitive markers to test redaction.
 Tests also remove usage, insert null cumulative fields and cut off terminal
 frames to check missing metadata and incomplete captures.
+
+## OpenRouter
+
+`openrouter-generation.json` adapts the raw `data` wrapper and selected fields
+from the [official generation reference](https://openrouter.ai/docs/api/api-reference/generations/get-generation)
+(read 2026-10-20). The non-null `provider_responses` structure comes from the
+[official generation metadata schema](https://github.com/OpenRouterTeam/skills/blob/main/skills/openrouter-generations/SKILL.md#response-schemas),
+which shows `provider_name` and HTTP `status` inside the raw `data` wrapper.
+This fixture extends that example to two synthetic attempts. The API reference
+also supplies native token counts and region, and demonstrates a null list.
+IDs, statuses and attempts are synthetic; unused fields test that private
+metadata is discarded. Tests also replace the attempt list with null.
+
+`openrouter-chat.sse` adapts [OpenRouter streaming](https://openrouter.ai/docs/api/reference/streaming)
+and [usage accounting](https://openrouter.ai/docs/guides/guides/usage-accounting).
+IDs, answer and counts are synthetic. Top-level `provider` is optional and
+appears only in the first event here. Tests remove it entirely to prove that
+absent providers stay null. `usage.cost` is a JSON number whose decimal text
+must survive signing, including reported zero.

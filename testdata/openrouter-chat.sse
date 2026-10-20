@@ -1,0 +1,6 @@
+data: {"id":"gen-synthetic","object":"chat.completion.chunk","model":"sao10k/l3-stheno-8b","provider":"Infermatic","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
+
+data: {"id":"gen-synthetic","object":"chat.completion.chunk","model":"sao10k/l3-stheno-8b","choices":[],"usage":{"prompt_tokens":10,"completion_tokens":25,"cost":0.001500}}
+
+data: [DONE]
+
