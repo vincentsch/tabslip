@@ -32,7 +32,7 @@ func TestReleaseNotesSelectVersion(t *testing.T) {
 				if err == nil || !strings.Contains(string(out), tc.want) {
 					t.Fatalf("missing version: %v: %s", err, out)
 				}
-			} else if err != nil || string(out) != tc.want {
+			} else if err != nil || strings.ReplaceAll(string(out), "\r\n", "\n") != tc.want {
 				t.Fatalf("notes: %v: %q", err, out)
 			}
 		})
