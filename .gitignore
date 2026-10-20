@@ -1,0 +1,14 @@
+# Build output
+/dist/
+/bin/
+*.exe
+*.test
+*.out
+coverage.*
+
+# Local state and secrets
+.env
+.env.*
+*.log
+.DS_Store
+/tmp/
