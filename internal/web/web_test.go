@@ -435,9 +435,11 @@ func TestDeleteCascadesAndPromptMatchesCopySource(t *testing.T) {
 	cost := "1"
 	s.Store.SaveSupplement(supplement(r, &cost, nil))
 	s.Store.Flush()
-	readme, err := os.ReadFile("../../README.md")
-	if err != nil || !strings.Contains(string(readme), SetupPrompt) {
-		t.Fatal("public setup prompt differs from displayed and copied source", err)
+	for _, path := range []string{"../../README.md", "../../AGENTS.md"} {
+		public, err := os.ReadFile(path)
+		if err != nil || !strings.Contains(string(public), SetupPrompt) {
+			t.Fatalf("%s: public setup prompt differs from displayed and copied source: %v", path, err)
+		}
 	}
 	if !strings.Contains(html.UnescapeString(request(s, "/setup").Body.String()), SetupPrompt) {
 		t.Fatal("setup prompt differs")
