@@ -9,13 +9,33 @@ The signature shows that the receipt has not changed since your Tollglass signed
 Open the local page to browse live calls, receipts, spend and setup.
 Receipts include reported or estimated costs and can also be read and exported from the terminal.
 
+## Install
+
+Install the release for your platform into `~/.local/bin`:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
+tollglass demo
+```
+
+From a checkout, run `sh install.sh`. The script needs curl and either
+`sha256sum` or `shasum`. It verifies the download against the release's
+SHA-256 manifest before replacing an existing installation. The checksum
+detects changed downloads; it does not independently establish the publisher's
+identity. Set `INSTALL_DIR` to choose another directory. Add that directory
+to `PATH` if the installer prints a hint.
+
+By default the installer selects the latest release. To select a tag from a
+checkout, run `TOLLGLASS_VERSION=v0.1.0 sh install.sh`.
+The public installer URL and release downloads await publication.
+
 ## Start the gateway
 
 Build with Go 1.27.2. An older Go installation can download the toolchain
 with `GOTOOLCHAIN=auto`.
 
 ```sh
-go build -o bin/tollglass ./cmd/tollglass
+make build
 ./bin/tollglass
 ```
 
@@ -233,12 +253,15 @@ the client call intact and increases that counter. The counter resets on restart
 ## Check a source build
 
 ```sh
-go test ./...
-go test -race ./...
-go vet ./...
-gofmt -l cmd internal
-scripts/conformance.sh
+make test race lint conformance docs-check
 ```
+
+The [command reference](docs/reference/index.md) is generated from the CLI.
+Run `make docs` after changing commands; only `docs/reference/` is regenerated.
+Builds use version `dev` unless you supply `VERSION`. For release assets, run
+`make build-all VERSION=0.1.0 COMMIT=<commit>`; the six binaries and their
+`checksums.txt` are written to `dist/`. Release tags use `v0.1.0`, while the
+binary reports `0.1.0`.
 
 Tests use local fake servers and the documented fixtures in `testdata/`.
 For an SDK check, install `openai`, `anthropic` and `cryptography` in a temporary
