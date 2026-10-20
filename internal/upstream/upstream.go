@@ -33,6 +33,10 @@ func Build(custom []Config) (map[string]Upstream, error) {
 		if _, ok := out[c.Name]; ok {
 			return nil, fmt.Errorf("upstream name %q is reserved or repeated", c.Name)
 		}
+		switch c.Name {
+		case "setup", "spend", "r", "events", "settings":
+			return nil, fmt.Errorf("upstream name %q is reserved for the local page; choose another name", c.Name)
+		}
 		if !namePattern.MatchString(c.Name) || c.Name == "healthz" {
 			return nil, fmt.Errorf("invalid upstream name")
 		}

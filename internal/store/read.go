@@ -18,7 +18,10 @@ type Reader struct{ db *sql.DB }
 
 // OpenReader never initializes local state or applies retention.
 func OpenReader(dir string) (*Reader, error) {
-	path := filepath.Join(dir, "tollglass.db")
+	path, err := filepath.Abs(filepath.Join(dir, "tollglass.db"))
+	if err != nil {
+		return nil, fmt.Errorf("cannot resolve data directory")
+	}
 	if _, err := os.Stat(path); err != nil {
 		return nil, err
 	}

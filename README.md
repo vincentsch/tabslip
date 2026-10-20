@@ -173,7 +173,8 @@ original signed receipt stays unchanged.
 Server startup never downloads prices. The committed snapshot comes from
 LiteLLM revision `4818b767d8b4c4e5fa9885ab953d6f5cfe7c7ca5`.
 Developers can reproduce it with `go generate ./internal/prices`.
-The runtime price-update command will be available in a later source build.
+Use `tollglass prices update` to download a new snapshot explicitly, then
+restart a running gateway to use it.
 
 ## Configuration and local data
 
@@ -186,7 +187,8 @@ settings. Preview a start without creating files or opening a listener:
 ./bin/tollglass serve --config config.yaml --dry-run --json
 ```
 
-Custom upstreams add names; they cannot replace presets. Their base URL omits
+Custom upstreams add names; they cannot replace presets or local page routes
+(`healthz`, `setup`, `spend`, `r`, `events` and `settings`). Their base URL omits
 `/v1`. For example:
 
 ```yaml

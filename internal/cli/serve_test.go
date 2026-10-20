@@ -97,6 +97,27 @@ func TestHelpAndManifest(t *testing.T) {
 	}
 }
 
+func TestCustomUpstreamsCannotShadowLocalPages(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	data := filepath.Join(dir, "data")
+	for _, name := range []string{"setup", "spend", "r", "events", "settings"} {
+		t.Run(name, func(t *testing.T) {
+			body := fmt.Sprintf("upstreams:\n  - name: %s\n    base_url: http://127.0.0.1:4598\n    api: openai\n", name)
+			if err := os.WriteFile(path, []byte(body), 0600); err != nil {
+				t.Fatal(err)
+			}
+			r := testutil.Run(NewApp(), "serve", "--config", path, "--data-dir", data, "--dry-run")
+			if r.Exit != 1 || !strings.Contains(r.Stderr, "reserved for the local page") || !strings.Contains(r.Stderr, name) {
+				t.Fatalf("route collision accepted or unclear diagnostic: %+v", r)
+			}
+		})
+	}
+	if _, err := os.Stat(data); !os.IsNotExist(err) {
+		t.Fatal("invalid config created instance state")
+	}
+}
+
 func TestAddressInUseErrors(t *testing.T) {
 	for _, tc := range []struct {
 		name string

@@ -50,6 +50,10 @@ type Store struct {
 }
 
 func Open(dir string, days int, logger *log.Logger) (*Store, error) {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, fmt.Errorf("cannot resolve data directory")
+	}
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("cannot create data directory")
 	}

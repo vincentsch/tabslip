@@ -774,6 +774,78 @@ type failedClientWriter struct{ http.ResponseWriter }
 func (w failedClientWriter) Write([]byte) (int, error)   { return 0, io.ErrClosedPipe }
 func (w failedClientWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
 
+type flushedHeaders struct {
+	http.ResponseWriter
+	ready chan struct{}
+}
+
+func (w flushedHeaders) WriteHeader(status int) {
+	w.ResponseWriter.WriteHeader(status)
+	_ = http.NewResponseController(w.ResponseWriter).Flush()
+	close(w.ready)
+}
+func (w flushedHeaders) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
+type delayedEOFBody struct {
+	io.ReadCloser
+	remaining int64
+	ready     <-chan struct{}
+	result    chan<- error
+}
+
+func (b *delayedEOFBody) Read(p []byte) (int, error) {
+	if b.remaining == 0 {
+		<-b.ready
+		n, err := b.ReadCloser.Read(p)
+		b.result <- err
+		return n, err
+	}
+	n, err := b.ReadCloser.Read(p)
+	b.remaining -= int64(n)
+	return n, err
+}
+
+func TestResponseHeadersDoNotCloseForwardingRequestBody(t *testing.T) {
+	ready := make(chan struct{})
+	result := make(chan error, 1)
+	raw := fixture(t, "chat.json")
+	g, s, _ := gateway(t, func(w http.ResponseWriter, r *http.Request) {
+		if _, err := io.ReadAll(r.Body); err != nil {
+			t.Error(err)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.(http.Flusher).Flush()
+		// Let response headers reach the client before the transport's final
+		// request EOF check. This used to make the server close the shared wrapper.
+		select {
+		case err := <-result:
+			if err != io.EOF {
+				t.Errorf("final request read = %v, want EOF", err)
+			}
+		case <-r.Context().Done():
+			return
+		}
+		w.Write(raw)
+	}, false)
+	transport := g.Transport
+	g.Transport = roundTripFunc(func(r *http.Request) (*http.Response, error) {
+		r.Body = &delayedEOFBody{r.Body, r.ContentLength, ready, result}
+		return transport.RoundTrip(r)
+	})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		g.ServeHTTP(flushedHeaders{w, ready}, r)
+	}))
+	defer srv.Close()
+	got := call(t, srv, []byte(`{"model":"gpt-4.1","messages":[]}`), "")
+	if !bytes.Equal(got, raw) {
+		t.Fatal("response bytes changed")
+	}
+	r := take(t, s).r
+	if !r.Response.Complete || finding(r, "transport_error") || finding(r, "stream_interrupted") {
+		t.Fatal("complete response recorded as interrupted", r.Findings)
+	}
+}
+
 func TestClientWriteFailureDoesNotBlameUpstream(t *testing.T) {
 	g, s, _ := gateway(t, func(w http.ResponseWriter, r *http.Request) { w.Write(fixture(t, "chat.json")) }, false)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { g.ServeHTTP(failedClientWriter{w}, r) }))

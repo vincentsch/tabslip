@@ -94,6 +94,10 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		JSON(w, 404, map[string]any{"error": map[string]any{"type": "unknown_upstream", "message": "Choose a configured upstream.", "upstreams": upstream.Names(g.Upstreams)}})
 		return
 	}
+	// A response may arrive while the transport is still reading the request.
+	// Prevent the HTTP/1 server from draining and closing that body at headers.
+	// HTTP/2 already permits this; test-only writers may not expose the control.
+	_ = http.NewResponseController(w).EnableFullDuplex()
 	apiKind := u.API
 	if g.Demo && name == "demo" && path == "/v1/messages" {
 		apiKind = "anthropic"

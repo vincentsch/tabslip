@@ -26,6 +26,36 @@ func openTest(t *testing.T, dir string, days int) *Store {
 	}
 	return s
 }
+
+func TestRelativeDataDirectorySupportsRecordingAndReading(t *testing.T) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	dir, err := filepath.Rel(cwd, filepath.Join(t.TempDir(), "local receipts"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := openTest(t, dir, 0)
+	defer s.Close()
+	r := receipt.New(s.KeyID, time.Now())
+	s.Save(r, nil)
+	if err = s.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	reader, err := OpenReader(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
+	call, err := reader.Get(r.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = receipt.Verify(call.Envelope, s.Key.Public().(ed25519.PublicKey)); err != nil {
+		t.Fatal(err)
+	}
+}
 func sample(s *Store, when time.Time) *receipt.Receipt {
 	r := receipt.New(s.KeyID, when)
 	r.Request.Upstream = "openai"
