@@ -49,6 +49,10 @@ func demoCommand(dataDir *string) *rungrad.Command {
 }
 func shellQuote(s string) string { return "'" + strings.ReplaceAll(s, "'", "'\"'\"'") + "'" }
 func runDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool) error {
+	return runSeededDemo(f, dir, openPage, keep, locked, demo.Seed)
+}
+
+func runSeededDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool, seed func(context.Context, *http.Client, string) error) error {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return rungrad.NewError(2, "Cannot listen on a free demo port.")
@@ -65,7 +69,7 @@ func runDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool) error 
 	c.KeepContent = keep
 	worker := &enrich.Worker{Lookup: demo.Lookup, Save: db.SaveSupplement}
 	defer worker.Wait()
-	gateway := &proxy.Gateway{Upstreams: map[string]upstream.Upstream{"demo": {Name: "demo", URL: target, API: "openai"}}, Config: c, KeyID: db.KeyID, Store: db, Transport: demo.Transport{}, Demo: true, Enrich: worker.Schedule}
+	gateway := &proxy.Gateway{Upstreams: map[string]upstream.Upstream{"demo": {Name: "demo", URL: target, API: "openai"}}, Config: c, KeyID: db.KeyID, Store: db, Transport: demo.Transport{Delays: true}, Demo: true, Enrich: worker.Schedule}
 	page := "http://" + ln.Addr().String()
 	c.Port = ln.Addr().(*net.TCPAddr).Port
 	local := web.New(db, c, filepath.Join(dir, "config.yaml"), page, gateway.Upstreams, true, locked)
@@ -80,13 +84,19 @@ func runDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool) error 
 	transport := &http.Transport{Proxy: nil}
 	defer transport.CloseIdleConnections()
 	client := &http.Client{Transport: transport, Timeout: 10 * time.Second}
-	if err = demo.Seed(ctx, client, page); err != nil {
+	if err = seed(ctx, client, page); err != nil {
+		if ctx.Err() != nil {
+			return nil
+		}
 		return rungrad.NewError(2, "Cannot complete the demo calls.")
 	}
 	gateway.Wait()
 	worker.Wait()
 	if err = db.Flush(); err != nil {
 		return rungrad.NewError(2, "Cannot store the demo receipts.")
+	}
+	if ctx.Err() != nil {
+		return nil
 	}
 	// Keep the examples ready for the receipt commands as they become available.
 	commands := map[string]string{

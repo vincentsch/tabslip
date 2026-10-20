@@ -208,9 +208,48 @@ type option struct {
 	Selected    string
 }
 type snippet struct{ Title, Code string }
+type findingDetail struct {
+	receipt.Finding
+	Source   string
+	Resolved bool
+}
+
+func detailedFindings(r *receipt.Receipt, supplement *receipt.Supplement) []findingDetail {
+	// Compare base findings against Combined without supplement findings: identical
+	// codes from distinct sources must remain separate entries.
+	var baseSupplement *receipt.Supplement
+	if supplement != nil {
+		copy := *supplement
+		copy.Findings = nil
+		baseSupplement = &copy
+	}
+	_, _, active := receipt.Combined(r, baseSupplement)
+	var details []findingDetail
+	for _, f := range r.Findings {
+		resolved := true
+		for _, a := range active {
+			if a == f {
+				resolved = false
+				break
+			}
+		}
+		details = append(details, findingDetail{f, "Signed receipt", resolved})
+	}
+	if supplement != nil {
+		source := "Signed OpenRouter details"
+		if supplement.Source == "demo.generation" {
+			source = "Signed demo details (simulated)"
+		}
+		for _, f := range supplement.Findings {
+			details = append(details, findingDetail{f, source, false})
+		}
+	}
+	return details
+}
+
 type pageData struct {
 	OpenAIURL                                                                  string
-	ActiveFindings                                                             []receipt.Finding
+	Findings                                                                   []findingDetail
 	Page, Title, Content, Token, Error, Path, Prompt, KeyID, Fingerprint, Next string
 	Demo, Locked                                                               bool
 	Config                                                                     config.Config
@@ -294,7 +333,7 @@ func (s *Server) data(r *http.Request) (pageData, error) {
 		if len(d.Call.Supplements) > 0 {
 			contributing = &d.Call.Supplements[len(d.Call.Supplements)-1]
 		}
-		_, _, d.ActiveFindings = receipt.Combined(&d.Call.Receipt, contributing)
+		d.Findings = detailedFindings(&d.Call.Receipt, contributing)
 		d.Verification = verify(d.Call, s.Store.Key.Public().(ed25519.PublicKey))
 		d.SVG, d.ReceiptText = receiptSVG(d.Call, d.Verification.SignaturesValid)
 		d.Stored, err = s.Reader.Content(id)

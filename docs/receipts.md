@@ -108,6 +108,9 @@ findings. Missing lists are empty. Provider details can arrive after the call.
 The signed base receipt never changes. Combined displays and unsigned exports
 use supplement cost once and preserve an existing provider if its replacement
 is null. Recovered cost removes active `price_unknown`; original findings stay
-signed and visible. The receipt page verifies all contributors before showing
-SIGNED. See [verification](verify.md), [costs](costs.md) and the
+signed and visible, marked resolved. The findings panel lists the receipt's
+findings first, then the supplement's findings, with a source label for each.
+Findings from different sources stay separate even when their codes match.
+Resolved findings stay out of the Calls badge and findings filter.
+The receipt page verifies all contributors before showing SIGNED. See [verification](verify.md), [costs](costs.md) and the
 [command reference](reference/index.md).

@@ -11,6 +11,7 @@ import signal
 import sqlite3
 import subprocess
 import tempfile
+import time
 import urllib.request
 from decimal import Decimal
 
@@ -72,6 +73,11 @@ def check_records(data, expected):
         missing = next(r for r in values if r['request']['model'] == 'demo/no-usage')
         assert missing['usage']['source'] == 'unknown' and missing['cost']['amount'] is None
         assert all(f['code'] != 'price_unknown' for r in values for f in r['findings'])
+        if expected == 8:
+            times = [(r['request']['model'], r['request']['stream'], r['time']['ttfb_ms'], r['time']['total_ms']) for r in values]
+            assert all(first >= 150 for _, _, first, _ in times), times
+            assert all(total >= 1000 for _, stream, _, total in times if stream), times
+            print('Initial measured timings (model, stream, first/total ms):', times)
         return {row[0]: row[1] for row in rows}
 
 
@@ -84,6 +90,7 @@ def run(binary, explicit, root):
         args += ['--data-dir', str(root / 'kept-data')]
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                             env={**os.environ, 'TOLLGLASS_CONFIG': str(config)})
+    started = time.monotonic()
     data = None
     try:
         assert select.select([proc.stdout], [], [], 15)[0], 'startup timed out'
@@ -97,6 +104,7 @@ def run(binary, explicit, root):
                 extra = proc.stdout.readline()
                 assert extra, 'incomplete startup JSON'
                 line += extra
+        print(f'Completed seed in {time.monotonic() - started:.3f}s (explicit={explicit}).')
         assert set(info) == {'page_url', 'base_urls', 'data_dir', 'key_id', 'commands'}
         assert info['base_urls'] == {'openai': info['page_url'] + '/demo/v1', 'anthropic': info['page_url'] + '/demo'}
         assert set(info['commands']) == {'export', 'key_export', 'verify'}
@@ -125,6 +133,42 @@ def run(binary, explicit, root):
             proc.communicate(timeout=15)
 
 
+def interrupt_seed(binary, explicit, root):
+    # Own TMPDIR so the default directory can be located before startup output.
+    temporary = root / ('interrupt-explicit' if explicit else 'interrupt-default')
+    temporary.mkdir()
+    data = temporary / 'kept-data'
+    args = [str(binary), 'demo', '--json']
+    if explicit:
+        args += ['--data-dir', str(data)]
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                            env={**os.environ, 'TMPDIR': str(temporary)})
+    try:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            candidates = [data] if explicit else list(temporary.glob('tollglass-demo-*'))
+            if candidates and (candidates[0] / 'tollglass.db').exists():
+                data = candidates[0]
+                break
+            assert proc.poll() is None, proc.communicate()
+            time.sleep(0.01)
+        else:
+            raise AssertionError('demo data directory not created')
+        # Reach the delayed stream, before startup output is allowed.
+        time.sleep(0.6)
+        started = time.monotonic()
+        proc.send_signal(signal.SIGINT)
+        stdout, stderr = proc.communicate(timeout=2)
+        elapsed = time.monotonic() - started
+        assert proc.returncode == 0 and stdout == '' and stderr == '', (proc.returncode, stdout, stderr)
+        assert data.exists() == explicit, 'wrong interruption cleanup'
+        print(f'Interrupted seed (explicit={explicit}): exit 0 in {elapsed:.3f}s; stdout/stderr empty; data preserved={explicit}.')
+    finally:
+        if proc.poll() is None:
+            proc.terminate()
+            proc.communicate(timeout=5)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
@@ -133,6 +177,7 @@ def main():
         root = Path(directory)
         for explicit in (False, True):
             run(args.binary.resolve(), explicit, root)
+            interrupt_seed(args.binary.resolve(), explicit, root)
     print('Demo smoke passed: eight calls, signed supplement, exact totals, later call, isolated config and shutdown cleanup.')
 
 

@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/oklog/ulid/v2"
 	"github.com/vincentsch/tollglass/internal/receipt"
@@ -17,9 +19,12 @@ import (
 const Provider = "Demo provider (simulated)"
 
 // Transport never dials a network address, including for generation details.
-type Transport struct{}
+type Transport struct {
+	// Delays enables simulated response latency. The zero value delivers immediately.
+	Delays bool
+}
 
-func (Transport) RoundTrip(req *http.Request) (*http.Response, error) {
+func (t Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.URL.Host != "demo.invalid" {
 		return nil, fmt.Errorf("demo only supports its in-process upstream")
 	}
@@ -85,8 +90,110 @@ func (Transport) RoundTrip(req *http.Request) (*http.Response, error) {
 		status = 404
 		body = []byte(`{"error":{"type":"not_found"}}`)
 	}
-	return &http.Response{StatusCode: status, Header: http.Header{"Content-Type": {contentType}}, Body: io.NopCloser(bytes.NewReader(body)), ContentLength: int64(len(body)), Request: req}, nil
+	var responseBody io.ReadCloser = io.NopCloser(bytes.NewReader(body))
+	if t.Delays {
+		profile := delayProfile(req.URL.Path, v.Model, v.Stream)
+		if err := wait(req.Context(), nil, profile.first); err != nil {
+			return nil, err
+		}
+		chunks := [][]byte{body}
+		if contentType == "text/event-stream" {
+			chunks = bytes.SplitAfter(body, []byte("\n\n"))
+			if len(chunks[len(chunks)-1]) == 0 {
+				chunks = chunks[:len(chunks)-1]
+			}
+		}
+		interval := time.Duration(0)
+		if len(chunks) > 1 {
+			interval = (profile.total - profile.first) / time.Duration(len(chunks)-1)
+		}
+		responseBody = &delayedBody{ctx: req.Context(), chunks: chunks, interval: interval, closed: make(chan struct{})}
+	}
+	return &http.Response{StatusCode: status, Header: http.Header{"Content-Type": {contentType}}, Body: responseBody, ContentLength: int64(len(body)), Request: req}, nil
 }
+
+type timingProfile struct{ first, total time.Duration }
+
+func delayProfile(path, model string, stream bool) timingProfile {
+	first, total := 40, 40
+	if stream {
+		total = 160
+	}
+	switch {
+	case path == "/v1/chat/completions" && model == "demo/small" && stream:
+		first, total = 300, 1200
+	case path == "/v1/chat/completions" && model == "demo/small":
+		first, total = 250, 250
+	case path == "/v1/embeddings" && model == "demo/embedding" && !stream:
+		first, total = 200, 200
+	case path == "/v1/messages" && model == "demo/messages" && stream:
+		first, total = 400, 1500
+	case path == "/v1/messages" && model == "demo/messages":
+		first, total = 450, 450
+	case path == "/v1/chat/completions" && model == "demo/large" && !stream:
+		first, total = 900, 900
+	case path == "/v1/chat/completions" && model == "demo/error" && !stream:
+		first, total = 200, 200
+	case path == "/v1/chat/completions" && model == "demo/no-usage" && !stream:
+		first, total = 350, 350
+	}
+	return timingProfile{time.Duration(first) * time.Millisecond, time.Duration(total) * time.Millisecond}
+}
+
+func wait(ctx context.Context, closed <-chan struct{}, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-closed:
+		return io.ErrClosedPipe
+	case <-timer.C:
+		return ctx.Err()
+	}
+}
+
+// Each read ends at an event boundary so the gateway can flush events as they arrive.
+type delayedBody struct {
+	ctx      context.Context
+	chunks   [][]byte
+	interval time.Duration
+	pending  bool
+	closed   chan struct{}
+	once     sync.Once
+}
+
+func (b *delayedBody) Read(p []byte) (int, error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+	if err := b.ctx.Err(); err != nil {
+		return 0, err
+	}
+	select {
+	case <-b.closed:
+		return 0, io.ErrClosedPipe
+	default:
+	}
+	if len(b.chunks) == 0 {
+		return 0, io.EOF
+	}
+	if b.pending {
+		if err := wait(b.ctx, b.closed, b.interval); err != nil {
+			return 0, err
+		}
+		b.pending = false
+	}
+	n := copy(p, b.chunks[0])
+	b.chunks[0] = b.chunks[0][n:]
+	if len(b.chunks[0]) == 0 {
+		b.chunks = b.chunks[1:]
+		b.pending = true
+	}
+	return n, nil
+}
+func (b *delayedBody) Close() error { b.once.Do(func() { close(b.closed) }); return nil }
+
 func Lookup(_ context.Context, id, _ string) (*receipt.Supplement, error) {
 	if !strings.HasPrefix(id, "gen-demo-fallback-") {
 		return nil, nil

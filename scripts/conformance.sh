@@ -11,7 +11,7 @@ trap cleanup EXIT INT TERM
 CGO_ENABLED=0 go build -o "$work/tollglass" ./cmd/tollglass
 "$work/tollglass" demo --data-dir "$work/data" --json >"$work/startup.json" 2>"$work/demo.log" &
 demo_pid=$!
-for ((i=0;i<100;i++)); do
+for ((i=0;i<300;i++)); do
   [[ -s "$work/startup.json" ]] && break
   kill -0 "$demo_pid" 2>/dev/null || { cat "$work/demo.log" >&2; exit 1; }
   sleep 0.1
