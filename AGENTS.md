@@ -1,3 +1,5 @@
+[Changing Tollglass itself? Read CONTRIBUTING.md](CONTRIBUTING.md)
+
 # Set up Tollglass for a project
 
 Tollglass forwards AI API calls and keeps receipts signed by your Tollglass.

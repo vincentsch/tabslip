@@ -5,7 +5,8 @@ from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 root = Path(__file__).resolve().parents[1]
-files = [root / 'README.md', root / 'AGENTS.md', *sorted((root / 'docs').rglob('*.md')),
+files = [root / 'README.md', root / 'AGENTS.md', root / 'CONTRIBUTING.md',
+         root / 'SECURITY.md', root / 'RELEASE.md', root / 'CHANGELOG.md', *sorted((root / 'docs').rglob('*.md')),
          root / 'examples/README.md', *sorted((root / 'examples').glob('*/README.md'))]
 failures = []
 count = 0

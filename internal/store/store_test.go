@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -32,7 +33,7 @@ func TestRelativeDataDirectorySupportsRecordingAndReading(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dir, err := filepath.Rel(cwd, filepath.Join(t.TempDir(), "local receipts"))
+	dir, err := filepath.Rel(cwd, filepath.Join(t.TempDir(), "local receipts #1"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -111,7 +112,10 @@ func TestMigrationBurstDrainAndExactEnvelopes(t *testing.T) {
 		}
 	}
 	info, e := os.Stat(filepath.Join(dir, "key.ed25519"))
-	if e != nil || info.Mode().Perm() != 0600 {
+	if e != nil {
+		t.Fatal(e)
+	}
+	if runtime.GOOS != "windows" && info.Mode().Perm() != 0600 {
 		t.Fatal("private key permissions")
 	}
 }

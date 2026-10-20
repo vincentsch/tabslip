@@ -232,6 +232,17 @@ Compare the full hash before running the executable. Use the arm64 filename
 on ARM Windows. A checksum detects changed downloads; confirm the publisher
 separately. Native Windows and macOS execution await publication checks.
 
+With GitHub CLI installed, check the download's build provenance separately
+from the installer's checksum comparison:
+
+```sh
+gh attestation verify tollglass-<os>-<arch> --repo vincentsch/tollglass
+```
+
+Replace `<os>` with `linux`, `darwin` or `windows`, and `<arch>` with `amd64`
+or `arm64`. Add `.exe` for Windows, for example `tollglass-windows-amd64.exe`.
+See [release checks](RELEASE.md) for the publication and provenance procedure.
+
 Source builds need Go 1.27.2; `GOTOOLCHAIN=auto` can download the toolchain.
 From a checkout:
 
@@ -251,6 +262,11 @@ A plain source install reports version `dev`. Go installs in `GOBIN` or
 `$(go env GOPATH)/bin`. `make build-all VERSION=0.1.0 COMMIT=<commit>` creates
 six release binaries and `checksums.txt` in `dist/`; replace `<commit>` with
 the build revision. `make docs` regenerates only `docs/reference/`.
+
+## Contributing and security
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) to change Tollglass. Report security
+issues through the channel described in [SECURITY.md](SECURITY.md).
 
 ## License
 

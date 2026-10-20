@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +24,7 @@ func OpenReader(dir string) (*Reader, error) {
 	if _, err := os.Stat(path); err != nil {
 		return nil, err
 	}
-	u := url.URL{Scheme: "file", Path: path}
+	u := databaseURL(path)
 	q := u.Query()
 	q.Set("mode", "ro")
 	q.Add("_pragma", "busy_timeout(5000)")

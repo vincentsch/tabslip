@@ -6,7 +6,6 @@ import (
 	"embed"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"path/filepath"
 	"sync"
@@ -57,7 +56,7 @@ func Open(dir string, days int, logger *log.Logger) (*Store, error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("cannot create data directory")
 	}
-	u := url.URL{Scheme: "file", Path: filepath.Join(dir, "tollglass.db")}
+	u := databaseURL(filepath.Join(dir, "tollglass.db"))
 	q := u.Query()
 	q.Add("_pragma", "journal_mode(WAL)")
 	q.Add("_pragma", "synchronous(NORMAL)")

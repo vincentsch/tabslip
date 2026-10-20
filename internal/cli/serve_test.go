@@ -46,10 +46,11 @@ func TestDryRunConfigPrecedenceAndUsage(t *testing.T) {
 		t.Fatal("explicit config precedence")
 	}
 	t.Setenv("TOLLGLASS_CONFIG", "")
-	t.Setenv("XDG_CONFIG_HOME", dir)
 	os.MkdirAll(filepath.Join(dir, "tollglass"), 0700)
 	os.WriteFile(filepath.Join(dir, "tollglass", "config.yaml"), []byte("port: 4597"), 0600)
-	r = testutil.Run(NewApp(), "--dry-run", "--json")
+	r = testutil.RunWith(NewApp(), testutil.Options{
+		UserConfigDir: func() (string, error) { return dir, nil },
+	}, "--dry-run", "--json")
 	if r.Exit != 0 || !strings.Contains(r.Stdout, "4597") {
 		t.Fatalf("OS config: %+v", r)
 	}
