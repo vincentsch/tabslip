@@ -6,8 +6,8 @@ the requested and reported model, token usage,
 timing, body hashes and findings. Model names and usage come from the provider.
 The signature shows that the receipt has not changed since your Tollglass signed it.
 
-This is an early source build. The local page and receipt commands
-are not available yet. Receipts now include reported or estimated costs.
+This is an early source build. The local page is not available yet.
+Receipts include reported or estimated costs and can be read and exported from the terminal.
 
 ## Start the gateway
 
@@ -96,8 +96,8 @@ reads your normal config. Ctrl+C removes its temporary data; use
 `--data-dir ./demo-data` to keep it. `--dry-run` creates no state or listener.
 `--json` prints one object after the eight receipts and one signed supplement
 are stored. It includes the base URLs, data dir, key id and command examples.
-The page and export, key-export and verify commands will be available in a
-later source build; their printed examples already use the demo directory.
+Use the printed export, key-export and verify commands with the demo directory.
+The local page will be available in a later source build.
 
 ## How costs work
 
@@ -188,7 +188,7 @@ go test ./...
 go test -race ./...
 go vet ./...
 gofmt -l cmd internal
-go run github.com/vincentsch/rungrad/cmd/rungrad@v0.3.2 score ./bin/tollglass --strict
+scripts/conformance.sh
 ```
 
 Tests use local fake servers and the documented fixtures in `testdata/`.
@@ -202,6 +202,67 @@ Run `scripts/demo-smoke.py --binary bin/tollglass` with the same Python
 environment to check the built demo, signatures, totals and cleanup.
 The script checks streaming and JSON calls, embeddings, byte hashes, stored
 usage, signatures and shutdown. It uses local fakes and synthetic credentials.
+
+
+## Read and share receipts
+
+```sh
+./bin/tollglass receipts --tag my-project --since 2026-10-01 --json
+./bin/tollglass show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T
+./bin/tollglass export --out calls.tollglass.json
+./bin/tollglass key export --out tollglass.pub
+./bin/tollglass verify calls.tollglass.json --key tollglass.pub
+```
+
+Reads work while the gateway runs and after it stops. `--data-dir` selects
+local records. Reads never create a key or database. `receipts` shows the
+newest 20 calls; `--limit 0` selects all. Combine `--tag`, `--upstream`,
+`--model`, `--since` and `--until`. Models match the requested or reported
+name exactly, including case. Dates accept RFC 3339 or `YYYY-MM-DD` in UTC;
+`--since` includes its boundary and `--until` excludes it.
+
+`show --json` returns the original signed envelope. Human output wraps long
+values and includes any provider supplement. Missing receipts exit 5.
+
+Exports select all retained receipts unless filtered. The default bundle
+keeps signed receipt and supplement envelopes. `--format jsonl` writes one
+unsigned decoded `{receipt, supplements}` record per line. CSV writes one
+summary row per call; HTML is a self-contained printable spending statement.
+All formats exclude locally stored prompts and answers. CSV and statements
+apply supplement costs once and retain unknown values. Statements show exact
+reported and estimated subtotals, plus unknown-cost coverage.
+
+`--out` is required and must name a new file. Use `--dry-run` to preview an
+export without writing. `--json` keeps command results machine-readable.
+
+Verification works offline without a database. Confirm a sender's public key
+or key id through another channel. A bundle's own key does not confirm its
+signer. Use `--key file.pub` or `--key-id tg_…`; the flags are alternatives.
+Without either, an existing matching local public key confirms the signer.
+A single envelope requires `--key`. Exit 0 means valid signatures and a
+confirmed signer; 10 means invalid records; 11 means valid signatures with
+an unconfirmed or mismatched signer. Usage errors exit 1, runtime errors 2,
+and missing files 5. JSON includes per-envelope results and claim limits.
+Signatures protect the records; they do not check which model ran.
+
+## Check the setup and prices
+
+`tollglass doctor` checks config, writable storage, the key and database,
+the listening port and upstream reachability. Missing initial state is
+information. Unreachable presets are warnings; custom upstreams must answer.
+Any HTTP response counts as reachable, including an authentication error.
+The check sends no credentials and does not validate them. Each failed check
+includes a fix. Exit 2 means at least one failed check; `--json` lists results.
+
+`tollglass prices` shows the selected table, date and SHA-256 without a
+network request. `tollglass prices update` explicitly downloads LiteLLM's
+current table and installs a named snapshot. A failed update keeps the prior
+table. `--dry-run` makes no request or change. Restart a running gateway to
+use a new snapshot; already signed costs never change. The offline demo
+always uses its isolated embedded table.
+
+Run `scripts/conformance.sh` for the CLI contract checks and
+`scripts/receipts-smoke.py --binary bin/tollglass` for offline receipt checks.
 
 ## License
 

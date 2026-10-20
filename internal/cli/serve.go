@@ -22,6 +22,7 @@ import (
 	"github.com/vincentsch/rungrad/output"
 	"github.com/vincentsch/tollglass/internal/config"
 	"github.com/vincentsch/tollglass/internal/enrich"
+	"github.com/vincentsch/tollglass/internal/prices"
 	"github.com/vincentsch/tollglass/internal/proxy"
 	"github.com/vincentsch/tollglass/internal/store"
 	"github.com/vincentsch/tollglass/internal/upstream"
@@ -30,10 +31,33 @@ import (
 
 func NewApp() *rungrad.App {
 	app := rungrad.New(rungrad.AppConfig{
-		Name:    "tollglass",
-		Short:   "Keep signed receipts for AI API calls",
-		Long:    "Forward AI API calls and keep receipts signed by your Tollglass. Model names and usage come from the provider.",
-		Version: version.String(),
+		Name:           "tollglass",
+		Short:          "Keep signed receipts for AI API calls",
+		Long:           "Forward AI API calls and keep receipts signed by your Tollglass. Model names and usage come from the provider.",
+		Version:        version.String(),
+		AdvancedOutput: true,
+		ErrorPolicy: &rungrad.ErrorPolicy{Classify: func(c rungrad.ErrorContext) int {
+			var v verdictError
+			if errors.As(c.Err, &v) {
+				return int(v)
+			}
+			return c.DefaultExitCode
+		}, Render: func(c rungrad.ErrorContext) error {
+			var v verdictError
+			if errors.As(c.Err, &v) {
+				return nil
+			}
+			if c.MachineOutput {
+				b, err := output.StableJSON(map[string]any{"error": c.Err.Error(), "exit_code": c.ExitCode})
+				if err != nil {
+					return err
+				}
+				_, err = c.Stderr.Write(c.RedactJSON(b))
+				return err
+			}
+			_, err := fmt.Fprintf(c.Stderr, "Error: %s\n", c.RedactString(c.Err.Error()))
+			return err
+		}},
 		Resolution: &rungrad.ResolutionConfig{
 			ConfigEnvVar: "TOLLGLASS_CONFIG",
 			// rungrad resolves the path; Tollglass owns the YAML settings.
@@ -81,6 +105,9 @@ func NewApp() *rungrad.App {
 		}}
 	app.AddCommand(command)
 	app.AddCommand(demoCommand(&dataDir))
+	for _, c := range []*rungrad.Command{receiptsCommand(&dataDir), showCommand(&dataDir), exportCommand(&dataDir), verifyCommand(&dataDir), keyCommand(&dataDir), pricesCommand(&dataDir), doctorCommand(&dataDir, &listen, &port)} {
+		app.AddCommand(c)
+	}
 	for _, cmd := range root.Commands() {
 		if cmd.Name() == "serve" {
 			root.RunE = cmd.RunE
@@ -110,7 +137,11 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string) error {
 	us, _ := upstream.Build(c.Upstreams)
 	transport := proxy.Transport()
 	defer transport.CloseIdleConnections()
-	gateway := &proxy.Gateway{Upstreams: us, Config: c, KeyID: db.KeyID, Store: db, Transport: transport, Logger: logger}
+	table, _, err := prices.Selected(dataDir)
+	if err != nil {
+		return rungrad.NewError(2, err.Error())
+	}
+	gateway := &proxy.Gateway{Prices: &table, Upstreams: us, Config: c, KeyID: db.KeyID, Store: db, Transport: transport, Logger: logger}
 	worker := &enrich.Worker{Lookup: enrich.OpenRouter(transport), Save: db.SaveSupplement}
 	gateway.Enrich = worker.Schedule
 	defer worker.Wait()

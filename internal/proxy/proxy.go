@@ -40,6 +40,7 @@ type Gateway struct {
 	Logger    *log.Logger
 	active    sync.WaitGroup
 	Enrich    func(*receipt.Receipt, string)
+	Prices    *prices.Table
 	Demo      bool
 }
 
@@ -176,7 +177,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				content.Truncated = content.Truncated || capture.Truncated
 			}
 			apis.Finish(r)
-			prices.Embedded.Apply(r)
+			table := g.Prices
+			if table == nil {
+				table = &prices.Embedded
+			}
+			table.Apply(r)
 			g.Store.Save(r, content)
 			if g.Enrich != nil && ((name == "openrouter" && g.Config.EnrichOpenrouter) || (g.Demo && name == "demo")) {
 				g.Enrich(r, req.Header.Get("Authorization"))

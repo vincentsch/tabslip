@@ -19,11 +19,11 @@ var snapshot []byte
 
 type Rate struct {
 	Provider string      `json:"litellm_provider"`
-	Input    json.Number `json:"input_cost_per_token"`
-	Output   json.Number `json:"output_cost_per_token"`
-	Read     json.Number `json:"cache_read_input_token_cost"`
-	Write    json.Number `json:"cache_creation_input_token_cost"`
-	Write1h  json.Number `json:"cache_creation_input_token_cost_above_1hr"`
+	Input    json.Number `json:"input_cost_per_token,omitempty"`
+	Output   json.Number `json:"output_cost_per_token,omitempty"`
+	Read     json.Number `json:"cache_read_input_token_cost,omitempty"`
+	Write    json.Number `json:"cache_creation_input_token_cost,omitempty"`
+	Write1h  json.Number `json:"cache_creation_input_token_cost_above_1hr,omitempty"`
 }
 type Table struct {
 	Version string          `json:"version"`

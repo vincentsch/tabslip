@@ -1,0 +1,20 @@
+[
+  {
+    "id": "rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T",
+    "started": "2026-10-20T12:00:00.000Z",
+    "tag": "acme-shop",
+    "upstream": "openrouter",
+    "api": "openai.chat",
+    "requested_model": "vendor/requested-long-model-name/with-more-segments-and-words",
+    "reported_model": "\u003cscript\u003ealert(1)\u003c/script\u003e",
+    "provider": "Known provider",
+    "status": 200,
+    "input_tokens": 12,
+    "output_tokens": null,
+    "cost": "0.100000000000000001",
+    "cost_source": "reported",
+    "ttfb_ms": null,
+    "total_ms": 123,
+    "findings": []
+  }
+]

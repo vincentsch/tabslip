@@ -1,0 +1,35 @@
++------------------------------------------+
+|                TOLLGLASS                 |
+| 2026-10-20T12:00:00.000Z                 |
+| RECEIPT rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T  |
++------------------------------------------+
+| UPSTREAM                      openrouter |
+| API                          openai.chat |
+| MODEL ASKED                              |
+|   vendor/requested-long-model-name/with- |
+|   more-segments-and-words                |
+| MODEL REPORTED <script>alert(1)</script> |
+| PROVIDER                  Known provider |
+| TAG                            acme-shop |
++------------------------------------------+
+| TOKENS IN                             12 |
+| TOKENS OUT                       unknown |
+| CACHED                           unknown |
+| REASONING                        unknown |
+| FIRST BYTE                    unknown ms |
+| TOTAL TIME                        123 ms |
+| STATUS                               200 |
++------------------------------------------+
+| TOTAL           0.100000000000000001 USD |
+| reported                                 |
++------------------------------------------+
+| SUPPLEMENT openrouter.generation         |
+| PROVIDER                         unknown |
+| REGION                                eu |
+| COST                0.100000000000000001 |
+| Attempt 1: Known provider (200)          |
++------------------------------------------+
+| [ SIGNED tg_6f1c2a9b04d3e871 ]           |
+| Model and token values are reported by   |
+| the provider.                            |
++------------------------------------------+

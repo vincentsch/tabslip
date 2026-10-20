@@ -91,7 +91,7 @@ func runDemo(f *rungrad.Factory, dir string) error {
 		for _, name := range []string{"export", "key_export", "verify"} {
 			fmt.Fprintln(w, commands[name])
 		}
-		fmt.Fprintln(w, "\nPress Ctrl+C to stop. The local page and receipt commands are coming in a later source build.")
+		fmt.Fprintln(w, "\nPress Ctrl+C to stop. The local page is coming in a later source build.")
 	}); err != nil {
 		return err
 	}
