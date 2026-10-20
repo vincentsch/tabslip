@@ -61,7 +61,8 @@ received Responses `incomplete` and `failed` events can be complete captures.
 
 ## JSON example
 
-This is illustrative decoded JSON, without a signature. The shortened id,
+This is illustrative OpenRouter decoded JSON before supplemental cost arrives,
+not captured provider data. It has no signature. The shortened id,
 key id and hashes stand for full values in a stored receipt:
 
 ```json
@@ -70,8 +71,8 @@ key id and hashes stand for full values in a stored receipt:
   "id": "rcpt_…",
   "instance": {"key_id": "tg_…", "tollglass": "dev"},
   "time": {"started": "2026-10-21T09:00:00.000Z", "first_byte": "2026-10-21T09:00:00.030Z", "finished": "2026-10-21T09:00:00.050Z", "ttfb_ms": 30, "total_ms": 50},
-  "request": {"upstream": "demo", "api": "openai.chat", "method": "POST", "path": "/v1/chat/completions", "model": "gpt-4.1", "stream": false, "params": {}, "tag": "example", "body_sha256": "…", "body_bytes": 74, "modifications": []},
-  "response": {"status": 200, "complete": true, "api_status": null, "id": "chatcmpl-demo", "model": "gpt-4.1", "provider": null, "finish_reason": "stop", "system_fingerprint": null, "error": null, "body_sha256": "…", "body_bytes": 300},
+  "request": {"upstream": "openrouter", "api": "openai.chat", "method": "POST", "path": "/v1/chat/completions", "model": "openai/gpt-4.1", "stream": false, "params": {}, "tag": "example", "body_sha256": "…", "body_bytes": 74, "modifications": []},
+  "response": {"status": 200, "complete": true, "api_status": null, "id": "gen-example-unpriced", "model": "openai/gpt-4.1", "provider": null, "finish_reason": "stop", "system_fingerprint": null, "error": null, "body_sha256": "…", "body_bytes": 300},
   "usage": {"source": "reported", "input_tokens": 12, "output_tokens": 4, "cached_input_tokens": 0, "cache_write_tokens": null, "cache_write_1h_tokens": null, "reasoning_tokens": null},
   "cost": {"source": "unknown", "amount": null, "currency": null, "estimate": null, "price_table": null},
   "findings": [{"code": "price_unknown", "level": "observed", "text": "The cost is unknown."}]
@@ -92,6 +93,9 @@ key id and hashes stand for full values in a stored receipt:
 | `transport_error` | observed | Connection, TLS, read or early cancellation failure |
 | `metadata_unavailable` | observed | Metadata could not be parsed within the limit |
 
+Expected unknown cost on demo, Ollama and custom upstreams does not itself
+produce `price_unknown`.
+
 These describe reported values and observed failures; none checks the model itself.
 
 ## Signed supplements and displayed totals
@@ -108,9 +112,12 @@ findings. Missing lists are empty. Provider details can arrive after the call.
 The signed base receipt never changes. Combined displays and unsigned exports
 use supplement cost once and preserve an existing provider if its replacement
 is null. Recovered cost removes active `price_unknown`; original findings stay
-signed and visible, marked resolved. The findings panel lists the receipt's
-findings first, then the supplement's findings, with a source label for each.
+signed and visible. The receipt page has one detailed findings list, ordered
+by signed receipt then signed supplement. Each entry names its signed source;
+recovered pricing entries are marked resolved.
 Findings from different sources stay separate even when their codes match.
 Resolved findings stay out of the Calls badge and findings filter.
 The receipt page verifies all contributors before showing SIGNED. See [verification](verify.md), [costs](costs.md) and the
 [command reference](reference/index.md).
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

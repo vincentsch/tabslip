@@ -12,6 +12,8 @@ Read-only commands never create keys, databases or price snapshots.
 
 Choose a guide for the task:
 
+- [Install and connect manually](quickstart.md)
+- [Frequently asked questions](faq.md)
 - [Set up with an agent](setup-with-an-agent.md)
 - [Read receipt fields and findings](receipts.md)
 - [Verify shared records](verify.md)

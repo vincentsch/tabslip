@@ -64,3 +64,5 @@ Host headers only. State changes require a same-origin POST and page token.
 Proxy routes follow `--listen`; they forward credentials without added
 proxy authentication. See [network access](upstreams.md) and the
 [command reference](reference/index.md).
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

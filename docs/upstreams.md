@@ -55,6 +55,15 @@ through it. See the setup guide for detached start, owned-process stop and undo.
 
 ## Forwarding and tags
 
+Receipts cover these POST endpoints:
+
+| API | JSON | Streaming | Captured fields when provided |
+| --- | --- | --- | --- |
+| `/v1/chat/completions` | Yes | SSE | Model, id, provider, finish reason, fingerprint, input/output/cache/reasoning tokens, reported cost |
+| `/v1/responses` | Yes | SSE | Model, id, API status, usage, errors; terminal incomplete/failed status preserved |
+| `/v1/embeddings` | Yes | No | Model and input usage; output tokens stay unknown |
+| Anthropic `/v1/messages` | Yes | SSE | Model, id, stop reason, uncached input, cache reads/writes and output tokens |
+
 Credentials stay in the client: `Authorization`, `x-api-key` and provider
 headers pass through. Tollglass strips hop-by-hop headers and its own
 `X-Tollglass-*` headers. It does not retry provider calls. All paths forward,
@@ -91,3 +100,5 @@ failure. `enrich_openrouter: false` disables it after restart.
 Custom upstream names cannot replace presets or local page routes. Do not
 put keys in config. See [privacy](privacy.md) and the
 [command reference](reference/index.md).
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

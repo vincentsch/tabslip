@@ -7,7 +7,9 @@ provider. It also explains what the signed records can tell you.
 
 Use the source instance's data directory. Here `./instance-data` is an
 illustrative directory; replace it with the real directory, including the
-printed directory when using the demo. Output files must not exist.
+printed directory when using the demo. Quote paths with spaces, for example
+`--data-dir "./my instance"`. Export and key export refuse existing output
+files; choose a new filename or move the earlier file first.
 
 ```sh
 tollglass export --data-dir ./instance-data --out calls.tollglass.json
@@ -83,3 +85,5 @@ with totals, unknown-cost coverage and a compact call table, without individual
 receipt SVGs. These formats combine supplement cost once; they cannot be
 verified as signed bundles. No export includes local content.
 See the [command reference](reference/index.md).
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

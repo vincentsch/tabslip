@@ -81,7 +81,9 @@ and remove the disposable directories afterward.
 When publication is authorized, make the repository public. Immediately enable
 GitHub private vulnerability reporting and verify the
 [reporting channel](https://github.com/vincentsch/tollglass/security/advisories/new)
-before announcing a release. Do not claim the channel works before this check.
+before announcing a release. After enabling reporting and verifying the channel,
+remove the obsolete availability caveat from `SECURITY.md`. Do not claim the
+channel works before this check.
 
 Push main and confirm CI is green on Ubuntu, macOS and Windows. Native jobs
 run `go build ./...` and `go test ./...` directly. They cover the runners'
@@ -119,7 +121,9 @@ tollglass demo
 
 Use a temporary `INSTALL_DIR` if replacing an installed binary is unwanted.
 Also test `TOLLGLASS_VERSION=v0.1.0` and native Windows download/checksum steps
-from the README. Confirm all eight demo receipts, then test the source fallback
+from [the quickstart](docs/quickstart.md#install). Native PowerShell download
+and checksum commands still need execution on Windows; Linux review cannot
+establish that result. Confirm all eight demo receipts, then test the source fallback
 in a temporary `GOBIN`:
 
 ```sh

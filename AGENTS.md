@@ -22,8 +22,7 @@ Find the current provider, base URL and credentials source without printing
 keys or copying them to new files. Report which files or settings need to
 change before editing them. If there are no AI calls, explain that and stop.
 
-Look for these patterns; this is discovery guidance, not a list of tested
-framework integrations:
+Look for these client patterns:
 
 | Client | Places to check |
 | --- | --- |

@@ -74,3 +74,5 @@ or restore the original provider URL first. Installation does not add a
 service manager. For container reachability, remote pages and Host-header
 checks, see [upstreams](upstreams.md). For command flags, use the
 [command reference](reference/index.md).
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

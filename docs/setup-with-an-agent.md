@@ -11,8 +11,8 @@ and show me the receipt.
 
 The agent follows [AGENTS.md](../AGENTS.md). It finds the client creation
 sites and reports the settings it will change before editing. If the project
-has no AI calls, it stops. Framework names in that guide help discovery;
-only the [recorded SDK checks](../examples/README.md#tested-dependencies) are tested claims.
+has no AI calls, it stops. The guide lists client patterns to help find calls.
+See [examples](../examples/README.md) for runnable clients.
 
 ## What changes
 
@@ -52,3 +52,5 @@ reboot. The setup does not install a service manager. Use the recorded restart
 command with the same config environment, explicit flags and data directory.
 See [upstreams](upstreams.md) for Docker and remote-page access, and the
 [command reference](reference/index.md) for flags.
+
+See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.
