@@ -89,9 +89,10 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		JSON(w, 404, map[string]any{"error": map[string]any{"type": "unknown_upstream", "message": "Choose a configured upstream.", "upstreams": upstream.Names(g.Upstreams)}})
 		return
 	}
-	tracked := req.Method == "POST" && path == "/v1/chat/completions" && u.API == "openai"
+	api := apis.Endpoint(u.API, req.Method, path)
+	tracked := api != ""
 	var r *receipt.Receipt
-	var chat *apis.Chat
+	var capture *apis.Capture
 	var tap *responseTap
 	var content *store.Content
 	var reqDigest *digest
@@ -104,7 +105,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		started = time.Now()
 		r = receipt.New(g.KeyID, started)
 		r.Request.Upstream = name
-		r.Request.API = "openai.chat"
+		r.Request.API = api
 		r.Request.Method = req.Method
 		r.Request.Path = path
 		tag := req.Header.Get("X-Tollglass-Tag")
@@ -122,7 +123,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			requestContent = &boundedBuffer{}
 		}
 		reqDigest = newDigest()
-		chat = &apis.Chat{Receipt: r, Keep: keep}
+		capture = &apis.Capture{Receipt: r, Keep: keep}
 		defer func() {
 			// This also runs during http.ErrAbortHandler unwinding. Leave that panic intact.
 			if tap != nil {
@@ -139,7 +140,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 				r.Response.BodySHA256 = newDigest().Sum()
 			}
 			capturedWholeBody := r.Response.Complete
-			if responseStream && !chat.Done {
+			if responseStream && !capture.Done {
 				r.Response.Complete = false
 			}
 			if !r.Response.Complete && !transportFailed {
@@ -151,7 +152,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 					if tap != nil && tap.readFailed {
 						r.Find("transport_error", "observed", "The upstream response could not be read completely.")
 					}
-					if responseStream && !chat.Done {
+					if responseStream && !capture.Done {
 						r.Find("stream_interrupted", "observed", "The upstream stream ended before its final event.")
 					} else {
 						r.Find("stream_interrupted", "observed", "The upstream response ended before it was complete.")
@@ -164,8 +165,8 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			r.Time.Total = now.Sub(started).Milliseconds()
 			if content != nil {
 				content.Request, content.Truncated = requestContent.Snapshot()
-				content.Response = chat.Text
-				content.Truncated = content.Truncated || chat.Truncated
+				content.Response = capture.Text
+				content.Truncated = content.Truncated || capture.Truncated
 			}
 			apis.Finish(r)
 			g.Store.Save(r, content)
@@ -184,7 +185,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			apis.Unavailable(r)
 			valid = false
 		}
-		if valid && u.InjectUsage && r.Request.Stream != nil && *r.Request.Stream {
+		if valid && api == "openai.chat" && u.InjectUsage && r.Request.Stream != nil && *r.Request.Stream {
 			options, exists := v["stream_options"]
 			m, ok := options.(map[string]any)
 			if !exists || options == nil {
@@ -265,7 +266,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 			stream := strings.HasPrefix(strings.ToLower(resp.Header.Get("Content-Type")), "text/event-stream")
 			responseStream = stream
-			tap = newResponseTap(resp.Body, resp.Header.Get("Content-Encoding"), chat, stream)
+			tap = newResponseTap(resp.Body, resp.Header.Get("Content-Encoding"), capture, stream)
 			resp.Body = tap
 		}
 		return nil

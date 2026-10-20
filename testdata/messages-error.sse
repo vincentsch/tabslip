@@ -1,0 +1,6 @@
+event: message_start
+data: {"type": "message_start", "message": {"id": "msg_example", "type": "message", "role": "assistant", "model": "claude-sonnet-4-6", "content": [], "stop_reason": null, "stop_sequence": null, "usage": {"input_tokens": 100, "output_tokens": 1, "cache_read_input_tokens": 50, "cache_creation_input_tokens": 25, "cache_creation": {"ephemeral_5m_input_tokens": 15, "ephemeral_1h_input_tokens": 10}}}}
+
+event: error
+data: {"type": "error", "error": {"type": "overloaded_error", "message": "sensitive prompt synthetic-secret-marker"}}
+

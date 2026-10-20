@@ -86,7 +86,7 @@ type responseTap struct {
 	closed     bool
 }
 
-func newResponseTap(body io.ReadCloser, encoding string, chat *apis.Chat, stream bool) *responseTap {
+func newResponseTap(body io.ReadCloser, encoding string, capture *apis.Capture, stream bool) *responseTap {
 	pr, pw := io.Pipe()
 	t := &responseTap{ReadCloser: body, digest: newDigest(), pipe: pw, done: make(chan struct{})}
 	go func() {
@@ -111,20 +111,20 @@ func newResponseTap(body io.ReadCloser, encoding string, chat *apis.Chat, stream
 		case "br":
 			src = brotli.NewReader(pr)
 		default:
-			apis.Unavailable(chat.Receipt)
+			apis.Unavailable(capture.Receipt)
 			return
 		}
 		if err != nil {
-			apis.Unavailable(chat.Receipt)
+			apis.Unavailable(capture.Receipt)
 			return
 		}
 		if closer != nil {
 			defer closer.Close()
 		}
-		chat.Parse(src, stream)
+		capture.Parse(src, stream)
 		// Drain the decoder to catch checksum errors, then drain raw bytes even on failure.
 		if _, err = io.Copy(io.Discard, src); err != nil {
-			apis.Unavailable(chat.Receipt)
+			apis.Unavailable(capture.Receipt)
 		}
 	}()
 	return t

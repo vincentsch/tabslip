@@ -179,7 +179,7 @@ func (s *Store) insert(v Record) error {
 	if r.Request.Tag != "" {
 		tag = &r.Request.Tag
 	}
-	_, err = tx.Exec(`INSERT INTO receipts (id,started_at,upstream,api,requested_model,reported_model,provider,tag,status,input_tokens,output_tokens,cost_amount,cost_source,ttfb_ms,total_ms,has_findings,envelope) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, r.ID, r.Time.Started, r.Request.Upstream, r.Request.API, r.Request.Model, r.Response.Model, r.Response.Provider, tag, r.Response.Status, r.Usage.Input, r.Usage.Output, r.Cost.Amount, r.Cost.Source, r.Time.TTFB, r.Time.Total, r.HasFindings(), v.Envelope)
+	_, err = tx.Exec(`INSERT INTO receipts (id,started_at,upstream,api,requested_model,reported_model,provider,tag,status,input_tokens,output_tokens,cost_amount,cost_source,ttfb_ms,total_ms,has_findings,envelope) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, r.ID, r.Time.Started, r.Request.Upstream, r.Request.API, r.Request.Model, r.Response.Model, r.Response.Provider, tag, r.Response.Status, r.DisplayInput(), r.Usage.Output, r.Cost.Amount, r.Cost.Source, r.Time.TTFB, r.Time.Total, r.HasFindings(), v.Envelope)
 	if err != nil {
 		return err
 	}

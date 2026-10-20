@@ -1,0 +1,24 @@
+{
+  "id": "msg_example",
+  "type": "message",
+  "role": "assistant",
+  "model": "claude-sonnet-4-6",
+  "content": [
+    {
+      "type": "text",
+      "text": "Grüße"
+    }
+  ],
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 12,
+    "cache_read_input_tokens": 50,
+    "cache_creation_input_tokens": 25,
+    "cache_creation": {
+      "ephemeral_5m_input_tokens": 15,
+      "ephemeral_1h_input_tokens": 10
+    }
+  }
+}

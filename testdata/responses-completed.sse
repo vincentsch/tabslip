@@ -1,0 +1,9 @@
+event: response.created
+data: {"type": "response.created", "sequence_number": 0, "response": {"id": "resp_example", "object": "response", "created_at": 1741476542, "model": "gpt-4.1-2025-04-14", "status": "in_progress", "error": null, "incomplete_details": null, "output": [], "usage": null}}
+
+event: response.output_text.delta
+data: {"type": "response.output_text.delta", "sequence_number": 1, "item_id": "msg_answer", "output_index": 0, "content_index": 0, "delta": "Grüße", "logprobs": []}
+
+event: response.completed
+data: {"type": "response.completed", "sequence_number": 2, "response": {"id": "resp_example", "object": "response", "created_at": 1741476542, "model": "gpt-4.1-2025-04-14", "status": "completed", "error": null, "incomplete_details": null, "output": [{"type": "message", "id": "msg_answer", "status": "completed", "role": "assistant", "content": [{"type": "output_text", "text": "Grüße", "annotations": []}]}], "usage": {"input_tokens": 23, "output_tokens": 8, "total_tokens": 31, "input_tokens_details": {"cached_tokens": 5}, "output_tokens_details": {"reasoning_tokens": 3}}}}
+

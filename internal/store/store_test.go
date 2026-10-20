@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/vincentsch/tollglass/internal/apis"
 	"github.com/vincentsch/tollglass/internal/receipt"
 )
 
@@ -220,5 +221,113 @@ func TestSummaryTagsPreserveMissingValues(t *testing.T) {
 		if tag != tc.want {
 			t.Fatalf("summary tag=%+v, want %+v", tag, tc.want)
 		}
+	}
+}
+
+func TestAnthropicSummaryUsesTotalWhileEnvelopeKeepsUncachedInput(t *testing.T) {
+	dir := t.TempDir()
+	s := openTest(t, dir, 0)
+	pub := s.Key.Public().(ed25519.PublicKey)
+	var ids []string
+	for _, mode := range []string{"complete", "missing", "null"} {
+		r := sample(s, time.Now())
+		r.Request.API = "anthropic.messages"
+		raw := `{"source":"reported","input_tokens":100,"output_tokens":12,"cached_input_tokens":50,"cache_write_tokens":25,"cache_write_1h_tokens":10}`
+		if mode == "missing" {
+			raw = strings.Replace(raw, `,"cached_input_tokens":50`, "", 1)
+		}
+		if mode == "null" {
+			raw = strings.Replace(raw, `"cache_write_tokens":25`, `"cache_write_tokens":null`, 1)
+		}
+		if err := json.Unmarshal([]byte(raw), &r.Usage); err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, r.ID)
+		s.Save(r, nil)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	db := readDB(t, dir)
+	for i, id := range ids {
+		var input sql.NullInt64
+		var env []byte
+		if err := db.QueryRow("SELECT input_tokens,envelope FROM receipts WHERE id=?", id).Scan(&input, &env); err != nil {
+			t.Fatal(err)
+		}
+		if i == 0 && (!input.Valid || input.Int64 != 175) {
+			t.Fatal("display total", input)
+		}
+		if i > 0 && input.Valid {
+			t.Fatal("unknown cache usage displayed as zero", input)
+		}
+		payload, err := receipt.Verify(env, pub)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var r receipt.Receipt
+		if err = json.Unmarshal(payload, &r); err != nil || r.Usage.Input == nil || *r.Usage.Input != 100 {
+			t.Fatal("signed uncached count changed")
+		}
+	}
+}
+
+func TestTerminalProviderErrorsDoNotStoreSensitiveMessages(t *testing.T) {
+	dir := t.TempDir()
+	var logs bytes.Buffer
+	s, err := Open(dir, 0, log.New(&logs, "", 0))
+	if err != nil {
+		t.Fatal(err)
+	}
+	pub := s.Key.Public().(ed25519.PublicKey)
+	for _, tc := range []struct{ api, file string }{
+		{"anthropic.messages", "messages-error.sse"}, {"openai.responses", "responses-failed.sse"}, {"openai.responses", "responses-error.sse"}, {"openai.responses", "responses-nested-error.sse"},
+	} {
+		raw, err := os.ReadFile("../../testdata/" + tc.file)
+		if err != nil {
+			t.Fatal(err)
+		}
+		r := sample(s, time.Now())
+		r.Request.API = tc.api
+		c := &apis.Capture{Receipt: r}
+		c.Parse(bytes.NewReader(raw), true)
+		r.Response.Complete = c.Done
+		if !c.Done || r.Response.Error == nil || (r.Usage.Input == nil && tc.file != "responses-error.sse" && tc.file != "responses-nested-error.sse") {
+			t.Fatal("terminal error metadata lost")
+		}
+		s.Save(r, nil)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	db := readDB(t, dir)
+	var n int
+	if err := db.QueryRow("SELECT count(*) FROM contents").Scan(&n); err != nil || n != 0 {
+		t.Fatal("stored content when disabled")
+	}
+	rows, err := db.Query("SELECT envelope FROM receipts")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var env []byte
+		if err := rows.Scan(&env); err != nil {
+			t.Fatal(err)
+		}
+		payload, err := receipt.Verify(env, pub)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if bytes.Contains(payload, []byte("sensitive")) || bytes.Contains(payload, []byte("synthetic-secret-marker")) {
+			t.Fatal("message in signed receipt")
+		}
+	}
+	raw, err := os.ReadFile(filepath.Join(dir, "tollglass.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(raw, []byte("sensitive")) || bytes.Contains(raw, []byte("synthetic-secret-marker")) || logs.Len() != 0 {
+		t.Fatal("sensitive error stored or logged")
 	}
 }

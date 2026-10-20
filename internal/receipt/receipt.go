@@ -157,3 +157,16 @@ func Verify(b []byte, pub ed25519.PublicKey) ([]byte, error) {
 	}
 	return p, nil
 }
+
+// DisplayInput includes Anthropic's separately reported cache categories.
+// Usage.Input remains the raw uncached count used for pricing and signed exports.
+func (r *Receipt) DisplayInput() *int64 {
+	if r.Request.API != "anthropic.messages" {
+		return r.Usage.Input
+	}
+	if r.Usage.Input == nil || r.Usage.Cached == nil || r.Usage.CacheWrite == nil {
+		return nil
+	}
+	total := *r.Usage.Input + *r.Usage.Cached + *r.Usage.CacheWrite
+	return &total
+}

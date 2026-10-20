@@ -1,12 +1,13 @@
 # Tollglass
 
 Tollglass forwards AI API calls and keeps signed receipts for OpenAI chat
-completions. A receipt records the requested and reported model, token usage,
+completions, Responses, embeddings and Anthropic Messages. A receipt records
+the requested and reported model, token usage,
 timing, body hashes and findings. Model names and usage come from the provider.
 The signature shows that the receipt has not changed since your Tollglass signed it.
 
-This is an early source build. The local page, receipt commands and other API
-adapters are not available yet. Cost is recorded as unknown.
+This is an early source build. The local page and receipt commands
+are not available yet. Cost is recorded as unknown.
 
 ## Start the gateway
 
@@ -31,9 +32,10 @@ Point your client's base URL at the upstream you use:
 | Ollama | `http://127.0.0.1:4545/ollama/v1` |
 | Anthropic | `http://127.0.0.1:4545/anthropic` |
 
-All paths pass through. Only `POST /v1/chat/completions` on OpenAI-compatible
-upstreams produces receipts in this build. Anthropic calls pass through without
-receipts. Tollglass forwards credentials from your client; it needs no API key
+All paths pass through. Receipts cover `POST /v1/chat/completions`,
+`POST /v1/responses` and `POST /v1/embeddings` on OpenAI-compatible upstreams,
+and `POST /v1/messages` on Anthropic upstreams. Tollglass forwards credentials
+from your client; it needs no API key
 of its own and does not retry provider calls.
 
 ```python
@@ -49,7 +51,34 @@ response = client.chat.completions.create(
 
 Streaming stays streaming. OpenAI and Ollama streaming chat requests get
 `stream_options.include_usage=true` when needed. OpenRouter requests stay
-unchanged. Receipts record any injection and hash the original client bytes.
+unchanged. Responses, embeddings and Messages requests also stay unchanged.
+Receipts record any injection and hash the original client bytes.
+
+Anthropic SDK clients use the base URL without `/v1`:
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(base_url="http://127.0.0.1:4545/anthropic")
+with client.messages.stream(
+    model="claude-sonnet-4-6",
+    max_tokens=256,
+    messages=[{"role": "user", "content": "Hello"}],
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)
+```
+
+`response.complete` records capture completeness. Fully received Responses
+`incomplete` and `failed` results preserve usage and `response.api_status`;
+complete provider error events finish capture and record `upstream_error`.
+A stream cut off before its terminal event is incomplete.
+
+Signed Anthropic `usage.input_tokens` is the provider's uncached input.
+The database summary adds cache reads and total cache writes for display;
+if any category is unknown, the total is unknown. One-hour cache writes are
+part of total writes and are never counted twice. Embeddings record input
+usage with output tokens left null.
 
 ## Configuration and local data
 
@@ -115,10 +144,14 @@ go run github.com/vincentsch/rungrad/cmd/rungrad@v0.3.2 score ./bin/tollglass --
 ```
 
 Tests use local fake servers and the documented fixtures in `testdata/`.
-For an SDK check, install `openai` in temporary Python and Node environments,
-then run `scripts/sdk-smoke.py` with that Python interpreter, `--binary` pointing
+For an SDK check, install `openai`, `anthropic` and `cryptography` in a temporary
+Python environment and `openai` plus `@anthropic-ai/sdk` in a temporary Node
+environment, then run `scripts/sdk-smoke.py` with that Python interpreter,
+`--binary` pointing
 to the built binary and `--node-module` pointing to the installed Node `openai`
-package. The script uses local fake upstreams and synthetic credentials.
+package, and `--anthropic-node-module` pointing to `@anthropic-ai/sdk`.
+The script checks streaming and JSON calls, embeddings, byte hashes, stored
+usage, signatures and shutdown. It uses local fakes and synthetic credentials.
 
 ## License
 
