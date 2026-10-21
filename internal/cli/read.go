@@ -2,6 +2,7 @@ package cli
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
+	"github.com/vincentsch/tabslip/internal/keys"
 	"github.com/vincentsch/tabslip/internal/receipt"
 	"github.com/vincentsch/tabslip/internal/store"
 )
@@ -87,7 +89,23 @@ func showCommand(dir *string) *rungrad.Command {
 		if err != nil {
 			return localError(err)
 		}
-		return f.WriteResult(call.Envelope, func(w io.Writer) { renderReceiptStyled(w, call, f.TerminalMode().Color) })
+		_, pub, err := keys.Public(*dir)
+		if err != nil {
+			return localError(err)
+		}
+		verification := receipt.VerifyEnvelopes(receipt.Bundle{Type: "tabslip.bundle/v1", KeyID: receipt.KeyID(pub), Receipts: []json.RawMessage{call.Envelope}, Supplements: call.SupplementEnvelopes}, pub)
+		if err = f.WriteResult(call.Envelope, func(w io.Writer) { renderReceiptStyled(w, call, verification, f.TerminalMode().Color) }); err != nil {
+			return err
+		}
+		if !verification.SignaturesValid {
+			for _, envelope := range verification.Envelopes {
+				if !envelope.Valid {
+					fmt.Fprintf(f.Stderr, "INVALID %s: %s\n", terminal(envelope.Name), envelope.Error)
+				}
+			}
+			return verdictError(10)
+		}
+		return nil
 	})
 	c.Args = cobra.ExactArgs(1)
 	c.Examples = []string{"tabslip show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T", "tabslip show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T --json"}
@@ -125,8 +143,7 @@ func wrap(s string, width int) []string {
 	}
 	return append(out, string(r))
 }
-func renderReceipt(w io.Writer, c store.Call) { renderReceiptStyled(w, c, false) }
-func renderReceiptStyled(w io.Writer, c store.Call, color bool) {
+func renderReceiptStyled(w io.Writer, c store.Call, verification receipt.Verification, color bool) {
 	const width = 40
 	line := func(s string) {
 		for _, part := range wrap(s, width) {
@@ -187,12 +204,26 @@ func renderReceiptStyled(w io.Writer, c store.Call, color bool) {
 		}
 	}
 	sep()
-	if color {
-		fmt.Fprint(w, "\x1b[32m")
+	stamp := "SIGNED"
+	if !verification.SignaturesValid {
+		stamp = "INVALID"
 	}
-	line("[ SIGNED " + r.Instance.KeyID + " ]")
+	if color {
+		ink := "\x1b[32m"
+		if !verification.SignaturesValid {
+			ink = "\x1b[31m"
+		}
+		fmt.Fprint(w, ink)
+	}
+	line("[ " + stamp + " " + r.Instance.KeyID + " ]")
 	if color {
 		fmt.Fprint(w, "\x1b[0m")
+	}
+	for _, envelope := range verification.Envelopes {
+		if !envelope.Valid {
+			line(envelope.Name)
+			line(envelope.Error)
+		}
 	}
 	line("Model and token values are reported by the provider.")
 	sep()

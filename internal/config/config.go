@@ -50,8 +50,10 @@ func Validate(c Config) error {
 	if c.Port < 1 || c.Port > 65535 {
 		return fmt.Errorf("port must be between 1 and 65535")
 	}
-	if c.Listen == "" {
-		return fmt.Errorf("listen address cannot be empty")
+	switch c.Listen {
+	case "127.0.0.1", "localhost", "::1", "0.0.0.0", "::":
+	default:
+		return fmt.Errorf("unsupported listen address %q; use loopback (127.0.0.1, localhost or ::1), or --listen 0.0.0.0 (IPv6: --listen ::) to expose the proxy and keep the page on loopback", c.Listen)
 	}
 	if c.RetentionDays < 0 {
 		return fmt.Errorf("retention_days cannot be negative")

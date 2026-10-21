@@ -85,6 +85,9 @@ func TestPagesPrivacyEscapingAndDownloads(t *testing.T) {
 		if w.Code != 200 {
 			t.Fatalf("%s: %d %s", path, w.Code, w.Body)
 		}
+		if got := w.Header().Get("Referrer-Policy"); got != "same-origin" {
+			t.Errorf("%s: form origin policy = %q", path, got)
+		}
 		body := w.Body.String()
 		if strings.Contains(body, "<script>alert(1)</script>") {
 			t.Fatalf("unescaped model: %s", path)
@@ -162,7 +165,7 @@ func TestAccessBoundaryCoversLocalRoutesAndAllowsProxy(t *testing.T) {
 			t.Fatalf("%s: mismatched local Host port accepted: %d", path, w.Code)
 		}
 	}
-	for _, origin := range []string{"", "http://evil.example:4545"} {
+	for _, origin := range []string{"", "null", "http://evil.example:4545"} {
 		w := post(s, "/settings", url.Values{"token": {s.token}, "retention_days": {"0"}}, origin)
 		if w.Code != 403 {
 			t.Fatal("foreign origin accepted")
@@ -170,6 +173,9 @@ func TestAccessBoundaryCoversLocalRoutesAndAllowsProxy(t *testing.T) {
 	}
 	if post(s, "/settings", url.Values{"retention_days": {"0"}}, s.BaseURL).Code != 403 {
 		t.Fatal("missing token accepted")
+	}
+	if post(s, "/settings", url.Values{"token": {"wrong"}, "retention_days": {"0"}}, s.BaseURL).Code != 403 {
+		t.Fatal("wrong token accepted")
 	}
 	req := httptest.NewRequest("POST", "http://evil.example:4545/openai/v1/chat/completions", nil)
 	req.RemoteAddr = "192.0.2.1:12"

@@ -117,7 +117,13 @@ by signed receipt then signed supplement. Each entry names its signed source;
 recovered pricing entries are marked resolved.
 Findings from different sources stay separate even when their codes match.
 Resolved findings stay out of the Calls badge and findings filter.
-The receipt page verifies all contributors before showing SIGNED. See [verification](verify.md), [costs](costs.md) and the
+The receipt page and human `show` verify the original receipt and every
+attached supplement before showing SIGNED. An invalid contributor produces
+INVALID with the failed check; `show` exits 10. `show --json` still returns
+only the original receipt envelope, with diagnostics on stderr and exit 10
+if any contributor fails, even when that base envelope alone is valid.
+Undecodable stored data is a read error (exit 2); missing receipts use exit 5.
+See [verification](verify.md), [costs](costs.md) and the
 [command reference](reference/index.md).
 
 See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

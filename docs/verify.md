@@ -77,6 +77,19 @@ JSON provides the same three answers and individual envelope results.
 A signature shows the record has not changed since your Tabslip signed it.
 It does not show the provider told the truth or stop the key owner inventing a record.
 
+## Check a local terminal receipt
+
+`tabslip show <receipt-id> --data-dir ./instance-data` checks the receipt and
+all attached supplements against the existing local public key. SIGNED means
+all contributors pass signature, type, signer-label and receipt-link checks.
+A failed check displays INVALID and returns exit 10 without changing records.
+
+`show --json` returns only the original base envelope, even on exit 10.
+Diagnostics on stderr identify the failed contributor. A damaged supplement
+can therefore make `show --json` fail while its base envelope still verifies
+on its own. Undecodable storage returns exit 2; a missing receipt returns 5.
+These reads never create or repair instance state.
+
 ## Other export formats
 
 `--format csv` and `--format jsonl` are unsigned exports. JSONL contains one

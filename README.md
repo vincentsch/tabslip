@@ -76,6 +76,10 @@ The [quickstart](docs/quickstart.md#connect-your-app) has all four SDK snippets,
 plus links to curl and environment examples. See [upstreams](docs/upstreams.md)
 for API coverage, custom providers, containers and servers.
 
+The local page stays on loopback. Supported `--listen` values are `127.0.0.1`,
+`localhost`, `::1`, `0.0.0.0` and `::`; specific non-loopback binds are rejected.
+For containers, use the [networking guide](docs/upstreams.md).
+
 ## What a receipt can and can't show
 
 A receipt records requested and reported models, usage, cost and findings.
@@ -87,7 +91,11 @@ a versioned price table, or unknown. [Receipt fields](docs/receipts.md) and
 
 A signature shows the receipt has not changed since your Tabslip signed it.
 It cannot check the provider's claims or stop the key owner inventing records.
-See [sharing and offline verification](docs/verify.md) for commands and exit codes.
+The terminal `show` command checks the receipt and all attached supplements
+before printing SIGNED. Failed checks print INVALID and return exit 10;
+`show --json` keeps the original base envelope on stdout and reports failed
+contributors on stderr. See [sharing and offline verification](docs/verify.md)
+for commands and exit codes.
 
 ## What stays on your computer
 

@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"crypto/x509"
+	"database/sql"
 	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/vincentsch/rungrad/testutil"
 	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/keys"
 	"github.com/vincentsch/tabslip/internal/receipt"
 	"github.com/vincentsch/tabslip/internal/store"
 	"github.com/vincentsch/tabslip/internal/upstream"
@@ -457,7 +459,7 @@ func TestHumanListLocalTimeAndUnknownCost(t *testing.T) {
 		t.Fatal(rows, err)
 	}
 	var out bytes.Buffer
-	renderReceipt(&out, rows[0])
+	renderReceiptStyled(&out, rows[0], receipt.Verification{SignaturesValid: true}, false)
 	for _, line := range strings.Split(out.String(), "\n") {
 		if strings.HasPrefix(line, "| TOTAL ") && !strings.HasPrefix(line, "| TOTAL TIME") && (strings.Count(line, "unknown") != 1 || strings.Contains(line, "USD")) {
 			t.Fatal(line)
@@ -469,5 +471,183 @@ func TestHumanListLocalTimeAndUnknownCost(t *testing.T) {
 	result = runRead(t, dir, "receipts", "--model", "equal", "--json")
 	if !strings.Contains(result.Stdout, "2026-10-19T00:00:00.000Z") {
 		t.Fatal(result)
+	}
+}
+
+func TestShowChecksAllContributors(t *testing.T) {
+	for _, change := range []string{"valid", "base only", "base signature", "supplement signature", "supplement digest", "supplement signer", "supplement type", "base type", "base signer", "malformed base", "malformed supplement", "malformed payload", "missing"} {
+		t.Run(change, func(t *testing.T) {
+			dir, id := seedReads(t)
+			reader, err := store.OpenReader(dir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			call, err := reader.Get(id)
+			reader.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			db, err := sql.Open("sqlite", filepath.Join(dir, "tabslip.db"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer db.Close()
+			exec := func(q string, args ...any) {
+				t.Helper()
+				if _, err := db.Exec(q, args...); err != nil {
+					t.Fatal(err)
+				}
+			}
+			want, check := 10, ""
+			raw := call.Envelope
+			supplement := strings.HasPrefix(change, "supplement")
+			if supplement {
+				raw = call.SupplementEnvelopes[0]
+			}
+			var env receipt.Envelope
+			if err := json.Unmarshal(raw, &env); err != nil {
+				t.Fatal(err)
+			}
+			switch change {
+			case "valid":
+				want = 0
+			case "base only":
+				exec("DELETE FROM supplements")
+				want = 0
+			case "missing":
+				id = "rcpt_missing"
+				want = 5
+			case "malformed base":
+				exec("UPDATE receipts SET envelope = ? WHERE id = ?", "{", id)
+				want = 2
+			case "malformed payload":
+				env.Payload = base64.StdEncoding.EncodeToString([]byte("{"))
+				raw, err := json.Marshal(env)
+				if err != nil {
+					t.Fatal(err)
+				}
+				exec("UPDATE receipts SET envelope = ? WHERE id = ?", raw, id)
+				want = 2
+			case "malformed supplement":
+				exec("UPDATE supplements SET envelope = ? WHERE receipt_id = ?", "{", id)
+				want = 2
+			default:
+				switch {
+				case strings.HasSuffix(change, "signature"):
+					sig, _ := base64.StdEncoding.DecodeString(env.Signatures[0].Sig)
+					sig[0] ^= 1
+					env.Signatures[0].Sig = base64.StdEncoding.EncodeToString(sig)
+					check = "invalid signature"
+				case strings.HasSuffix(change, "signer"):
+					env.Signatures[0].KeyID = "ts_wrong"
+					check = "key id"
+				case strings.HasSuffix(change, "type"):
+					env.PayloadType = "wrong"
+					check = "payload type"
+				case change == "supplement digest":
+					// Re-sign with the real key so the digest check is reached.
+					key, err := keys.Load(dir, "", true)
+					if err != nil {
+						t.Fatal(err)
+					}
+					bad := call.Supplements[0]
+					bad.ReceiptSHA256 = "wrong"
+					signed, err := receipt.SignSupplement(&bad, key)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if err := json.Unmarshal(signed, &env); err != nil {
+						t.Fatal(err)
+					}
+					check = "wrong receipt digest"
+				}
+				altered, err := json.Marshal(env)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if supplement {
+					exec("UPDATE supplements SET envelope = ? WHERE receipt_id = ?", altered, id)
+				} else {
+					exec("UPDATE receipts SET envelope = ? WHERE id = ?", altered, id)
+					call.Envelope = altered
+				}
+			}
+			for _, machine := range []bool{false, true} {
+				args := []string{"show", id}
+				if machine {
+					args = append(args, "--json")
+				}
+				got := runRead(t, dir, args...)
+				if got.Exit != want {
+					t.Fatalf("want exit %d: %+v", want, got)
+				}
+				if want == 2 || want == 5 {
+					if strings.Contains(got.Stdout, "SIGNED") || strings.Contains(got.Stdout, "INVALID") {
+						t.Fatal(got)
+					}
+					continue
+				}
+				if machine {
+					if want == 0 && got.Stderr != "" {
+						t.Fatal(got)
+					}
+					var actual, original receipt.Envelope
+					if json.Unmarshal([]byte(got.Stdout), &actual) != nil || json.Unmarshal(call.Envelope, &original) != nil {
+						t.Fatal(got)
+					}
+					a, _ := json.Marshal(actual)
+					b, _ := json.Marshal(original)
+					if !bytes.Equal(a, b) {
+						t.Fatal("JSON changed original envelope", got)
+					}
+					if want == 10 && (!strings.Contains(got.Stderr, check) || (supplement && !strings.Contains(got.Stderr, "supplement"))) {
+						t.Fatal(got)
+					}
+					if supplement && want == 10 {
+						if _, err := receipt.Verify([]byte(got.Stdout), mustPublic(t, dir)); err != nil {
+							t.Fatal("base no longer verifies", err)
+						}
+					}
+				} else {
+					stamp := "SIGNED"
+					if want == 10 {
+						stamp = "INVALID"
+					}
+					if !strings.Contains(got.Stdout, "[ "+stamp) || (want == 10 && (strings.Contains(got.Stdout, "[ SIGNED") || !strings.Contains(got.Stdout, check))) {
+						t.Fatal(got)
+					}
+					for _, line := range strings.Split(strings.TrimSpace(got.Stdout), "\n") {
+						if len([]rune(line)) > 44 {
+							t.Fatalf("too wide: %q", line)
+						}
+					}
+				}
+			}
+		})
+	}
+}
+func mustPublic(t *testing.T, dir string) ed25519.PublicKey {
+	t.Helper()
+	_, pub, err := keys.Public(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return pub
+}
+
+func TestShowDoesNotRepairMissingPublicKey(t *testing.T) {
+	dir, id := seedReads(t)
+	path := filepath.Join(dir, "key.pub")
+	if err := os.Remove(path); err != nil {
+		t.Fatal(err)
+	}
+	for _, args := range [][]string{{"show", id}, {"show", id, "--json"}} {
+		got := runRead(t, dir, args...)
+		if got.Exit != 5 || got.Stdout != "" {
+			t.Fatal(got)
+		}
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			t.Fatal("read repaired the public key", err)
+		}
 	}
 }

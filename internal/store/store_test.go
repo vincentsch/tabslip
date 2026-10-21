@@ -167,30 +167,66 @@ func TestRetentionAndIdentityRefusal(t *testing.T) {
 	}
 }
 func TestStalledWriterAndWriteFailure(t *testing.T) {
-	dir := t.TempDir()
 	var logs bytes.Buffer
-	s, e := Open(dir, 0, log.New(&logs, "", 0))
-	if e != nil {
-		t.Fatal(e)
+	s, err := Open(t.TempDir(), 0, log.New(&logs, "", 0))
+	if err != nil {
+		t.Fatal(err)
 	}
-	conn, e := s.db.Conn(t.Context())
-	if e != nil {
-		t.Fatal(e)
+	t.Cleanup(func() { s.Close() })
+	// Sign distinct records before checking enqueue; signing throughput is not
+	// part of the queue's non-blocking contract.
+	work := make([]Record, cap(s.queue)+1)
+	for i := range work {
+		r := sample(s, time.Now())
+		raw, err := receipt.Sign(r, s.Key)
+		if err != nil {
+			t.Fatal(err)
+		}
+		work[i] = Record{Receipt: r, Envelope: raw}
 	}
-	start := time.Now()
-	for i := 0; i < 1100; i++ {
-		s.Save(sample(s, time.Now()), nil)
+	conn, err := s.db.Conn(t.Context())
+	if err != nil {
+		t.Fatal(err)
 	}
-	if time.Since(start) > 2*time.Second || s.Unrecorded() == 0 {
-		t.Fatal("stalled writer blocked enqueue or did not count loss")
+	// Release the connection before closing the store, even after a fatal check.
+	t.Cleanup(func() { conn.Close() })
+	waits := s.db.Stats().WaitCount
+	if !s.Enqueue(work[0]) {
+		t.Fatal("initial enqueue failed")
 	}
-	conn.Close()
-	s.Close()
+	deadline := time.Now().Add(10 * time.Second)
+	for s.db.Stats().WaitCount == waits {
+		if time.Now().After(deadline) {
+			t.Fatal("writer did not wait for held connection")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	for _, record := range work[1:] {
+		if !s.Enqueue(record) {
+			t.Fatal("queue filled before capacity")
+		}
+	}
+	done := make(chan bool, 1)
+	go func() { done <- s.Enqueue(work[0]) }()
+	select {
+	case accepted := <-done:
+		if accepted || s.Unrecorded() != 1 {
+			t.Fatal("full queue did not reject and count exactly one call")
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("enqueue waited for stalled writer")
+	}
 	if !strings.Contains(logs.String(), "receipt recording failed") {
 		t.Fatal("missing safe diagnostic")
 	}
-	s = openTest(t, t.TempDir(), 0)
-	s.db.Exec("DROP TABLE receipts")
+}
+
+func TestFailedWriteCountsUnrecordedCall(t *testing.T) {
+	s := openTest(t, t.TempDir(), 0)
+	t.Cleanup(func() { s.Close() })
+	if _, err := s.db.Exec("DROP TABLE receipts"); err != nil {
+		t.Fatal(err)
+	}
 	s.Save(sample(s, time.Now()), nil)
 	s.Close()
 	if s.Unrecorded() != 1 {

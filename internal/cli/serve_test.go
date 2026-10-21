@@ -171,3 +171,49 @@ func TestBrowserOpenIsExplicitAndUsesConfiguredURL(t *testing.T) {
 		t.Fatal("configured URL lost", command, args, err)
 	}
 }
+
+func TestListenValidationBeforeInstanceCreation(t *testing.T) {
+	for _, command := range [][]string{nil, {"serve"}} {
+		for _, dry := range []bool{false, true} {
+			for _, yaml := range []bool{false, true} {
+				dir := t.TempDir()
+				path := filepath.Join(dir, "config.yaml")
+				data := filepath.Join(dir, "data")
+				body := "{}"
+				args := append([]string{}, command...)
+				args = append(args, "--config", path, "--data-dir", data)
+				if yaml {
+					body = "listen: 192.0.2.1"
+				} else {
+					args = append(args, "--listen", "192.0.2.1")
+				}
+				if dry {
+					args = append(args, "--dry-run", "--json")
+				}
+				if err := os.WriteFile(path, []byte(body), 0600); err != nil {
+					t.Fatal(err)
+				}
+				r := testutil.Run(NewApp(), args...)
+				if r.Exit != 1 || !strings.Contains(r.Stderr, "--listen 0.0.0.0") {
+					t.Fatalf("unsupported bind: %+v", r)
+				}
+				if _, err := os.Stat(data); !os.IsNotExist(err) {
+					t.Fatal("invalid bind created instance state")
+				}
+			}
+		}
+	}
+	for _, listen := range []string{"127.0.0.1", "localhost", "::1", "0.0.0.0", "::"} {
+		dir := t.TempDir()
+		path := filepath.Join(dir, "config.yaml")
+		if err := os.WriteFile(path, []byte("listen: 192.0.2.1"), 0600); err != nil {
+			t.Fatal(err)
+		}
+		for _, command := range [][]string{nil, {"serve"}} {
+			args := append(append([]string{}, command...), "--listen", listen, "--config", path, "--data-dir", filepath.Join(dir, "data"), "--dry-run", "--json")
+			if r := testutil.Run(NewApp(), args...); r.Exit != 0 {
+				t.Fatalf("supported override %s: %+v", listen, r)
+			}
+		}
+	}
+}

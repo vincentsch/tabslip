@@ -26,6 +26,10 @@ For Anthropic Messages, use `api: anthropic` and a client URL ending in
 `/my-provider`. Preserve other settings and entries. Custom upstreams load
 at startup, so a running server needs a restart to see changes.
 
+Supported listen inputs are `127.0.0.1`, `localhost`, `::1`, `0.0.0.0` and
+`::`. Wildcard inputs expose the proxy while keeping the Page URL on loopback.
+Flags override YAML before the effective listen address is checked.
+
 ## An app in Docker on Linux
 
 With `docker run --network host ...`, the app can reach the host's loopback
@@ -34,14 +38,15 @@ address and use the URLs above.
 With bridge networking, add `--add-host=host.docker.internal:host-gateway` to
 `docker run`, then use `http://host.docker.internal:4545/openai/v1`, or the
 route for your upstream. The hostname alone does not make loopback reachable.
-Tabslip must listen on the host bridge address or another reachable address,
-for example `tabslip serve --listen 0.0.0.0`. Check access from the container.
+Start Tabslip with `tabslip serve --listen 0.0.0.0` so the proxy is reachable
+from the container. Specific non-loopback listen addresses are not supported.
+Check access from the container.
 Use the selected port if it differs from 4545.
 
 The proxy forwards credentials without added authentication. Restrict access
 to the app with host networking rules. The page stays loopback-only; exposing
-the proxy does not expose the page. Ask the owner before restarting an
-existing instance or changing its listen address.
+the proxy does not expose the page. The printed Page URL uses loopback. Ask the
+owner before restarting an existing instance or changing its listen address.
 
 ## A server beside your app
 

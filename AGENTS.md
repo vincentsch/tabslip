@@ -226,14 +226,16 @@ identity or restart authority, or the host project's own rules.
 On Linux, an app container can use `--network host` with the loopback URLs
 above. With bridge networking, add `--add-host=host.docker.internal:host-gateway`
 and use `http://host.docker.internal:<port>/<upstream>/v1` (omit `/v1` for
-Anthropic). The hostname alone is insufficient: Tabslip must listen on an
-address reachable from the container, such as the host bridge address or
-`--listen 0.0.0.0`. Confirm the route from inside the container. Ask before
-changing someone else's running instance.
+Anthropic). The hostname alone is insufficient: Tabslip must use
+`--listen 0.0.0.0` so the proxy is reachable from the container. Specific
+non-loopback listen addresses are not supported. Confirm the route from inside
+the container. Ask before changing someone else's running instance.
 
 The reachable proxy forwards credentials without added authentication. Limit
-access with host networking rules. The web page stays loopback-only even when
-the proxy listens elsewhere. See [upstream guidance](docs/upstreams.md).
+access with host networking rules. The printed Page URL stays on loopback even
+when the proxy listens on a wildcard address. Supported listen inputs are
+`127.0.0.1`, `localhost`, `::1`, `0.0.0.0` and `::`.
+See [upstream guidance](docs/upstreams.md).
 
 Tabslip can run beside an app on a server. Point that app at the server's
 local gateway, and view its page through SSH:
