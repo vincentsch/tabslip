@@ -158,7 +158,7 @@ func portChecks(cfg config.Config) []check {
 	}
 	client := &http.Client{Timeout: time.Second, Transport: &http.Transport{Proxy: nil}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	defer client.CloseIdleConnections()
-	resp, e := client.Get("http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(cfg.Port)) + "/healthz")
+	resp, e := client.Get("http://" + net.JoinHostPort(loopbackHost(cfg.Listen), strconv.Itoa(cfg.Port)) + "/healthz")
 	if e == nil {
 		defer resp.Body.Close()
 		var h struct {

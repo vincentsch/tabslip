@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -357,6 +358,26 @@ func TestDoctorOfflineAndReachability(t *testing.T) {
 	server.Close()
 	if portChecks(cfg)[0].Status != "ok" {
 		t.Fatal("port not free")
+	}
+}
+
+func TestDoctorFindsIPv6Instance(t *testing.T) {
+	ln, err := net.Listen("tcp", "[::1]:0")
+	if err != nil {
+		t.Skip("IPv6 loopback unavailable")
+	}
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"tool":"tabslip","version":"test","key_id":"ts_test"}`)
+	}))
+	server.Listener.Close()
+	server.Listener = ln
+	server.Start()
+	defer server.Close()
+	cfg := config.Default()
+	cfg.Listen = "::1"
+	cfg.Port = ln.Addr().(*net.TCPAddr).Port
+	if checks := portChecks(cfg); checks[0].Status != "ok" {
+		t.Fatal(checks)
 	}
 }
 

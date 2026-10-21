@@ -132,7 +132,7 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string, locked, openPage
 	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		if isAddressInUse(err) {
-			return rungrad.NewError(2, busyMessage(c.Port))
+			return rungrad.NewError(2, busyMessage(c.Listen, c.Port))
 		}
 		return rungrad.NewError(2, "Cannot listen on the selected address. Check --listen and --port.")
 	}
@@ -239,8 +239,18 @@ func isAddressInUse(err error) bool {
 	return errors.Is(err, syscall.EADDRINUSE) ||
 		(runtime.GOOS == "windows" && errors.Is(err, syscall.Errno(10048)))
 }
-func busyMessage(port int) string {
-	endpoint := "http://" + net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
+
+// loopbackHost returns the loopback address in the listen address's family,
+// so health probes reach an IPv6-only listener as well.
+func loopbackHost(listen string) string {
+	if ip := net.ParseIP(listen); ip != nil && ip.To4() == nil {
+		return "::1"
+	}
+	return "127.0.0.1"
+}
+
+func busyMessage(listen string, port int) string {
+	endpoint := "http://" + net.JoinHostPort(loopbackHost(listen), strconv.Itoa(port))
 	client := &http.Client{Timeout: 500 * time.Millisecond, Transport: &http.Transport{Proxy: nil}, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	defer client.CloseIdleConnections()
 	resp, err := client.Get(endpoint + "/healthz")

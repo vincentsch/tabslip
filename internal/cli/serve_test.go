@@ -85,7 +85,7 @@ func TestBusyPort(t *testing.T) {
 	defer fake.Close()
 	_, port, _ := net.SplitHostPort(strings.TrimPrefix(fake.URL, "http://"))
 	n, _ := strconv.Atoi(port)
-	if !strings.Contains(busyMessage(n), "already running at "+fake.URL) {
+	if !strings.Contains(busyMessage("127.0.0.1", n), "already running at "+fake.URL) {
 		t.Fatal("existing Tabslip not identified")
 	}
 }
