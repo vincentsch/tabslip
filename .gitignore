@@ -17,3 +17,6 @@ coverage.*
 !.env.example
 .venv/
 node_modules
+
+# Local scratch output from QA helpers
+.vroni/
