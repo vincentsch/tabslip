@@ -21,7 +21,7 @@ type Finding struct {
 	Text  string `json:"text"`
 }
 type Instance struct {
-	KeyID     string `json:"key_id"`
+	KeyID   string `json:"key_id"`
 	Tabslip string `json:"tabslip"`
 }
 type Timing struct {

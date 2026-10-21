@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/wordmark-dark.svg">
-    <img src="docs/media/wordmark-light.svg" alt="Tabslip" width="440" height="88">
+    <img src="docs/media/wordmark-light.svg" alt="Tabslip" width="308" height="88">
   </picture>
 </p>
 
