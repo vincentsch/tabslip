@@ -17,10 +17,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 func fixture(t *testing.T) (*Server, *receipt.Receipt) {
@@ -278,7 +278,7 @@ func TestLockedContentSettingPreservesFilePreference(t *testing.T) {
 
 func supplement(r *receipt.Receipt, cost *string, provider *string) *receipt.Supplement {
 	p, _ := json.Marshal(r)
-	return &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Currency: "USD", Cost: cost, Provider: provider, Attempts: []receipt.Attempt{}, Findings: []receipt.Finding{}}
+	return &receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Currency: "USD", Cost: cost, Provider: provider, Attempts: []receipt.Attempt{}, Findings: []receipt.Finding{}}
 }
 func TestVerificationIncludesContributors(t *testing.T) {
 	s, r := fixture(t)
@@ -464,7 +464,7 @@ func TestDeleteCascadesAndPromptMatchesCopySource(t *testing.T) {
 
 func TestReceiptPageShowsInvalidForDamagedStoredContributors(t *testing.T) {
 	s, r := fixture(t)
-	db, err := sql.Open("sqlite", filepath.Join(filepath.Dir(s.ConfigPath), "tollglass.db"))
+	db, err := sql.Open("sqlite", filepath.Join(filepath.Dir(s.ConfigPath), "tabslip.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -567,7 +567,7 @@ func TestSSEFailureCounterArrivesWhileWriterRemainsStalled(t *testing.T) {
 			break
 		}
 	}
-	locked, err := sql.Open("sqlite", filepath.Join(filepath.Dir(s.ConfigPath), "tollglass.db"))
+	locked, err := sql.Open("sqlite", filepath.Join(filepath.Dir(s.ConfigPath), "tabslip.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

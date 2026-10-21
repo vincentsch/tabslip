@@ -56,8 +56,8 @@ class ExampleTest(unittest.TestCase):
                     self.assertEqual(body["model"], "gpt-4.1")
                     self.assertEqual(body["max_completion_tokens"], 64)
                     self.assertEqual(len(body["messages"]), 1)
-                self.assertEqual(requests[0][1]["X-Tollglass-Tag"], "setup-check-example")
-                self.assertNotIn("X-Tollglass-Tag", requests[1][1])
+                self.assertEqual(requests[0][1]["X-Tabslip-Tag"], "setup-check-example")
+                self.assertNotIn("X-Tabslip-Tag", requests[1][1])
             finally:
                 server.shutdown()
                 thread.join()

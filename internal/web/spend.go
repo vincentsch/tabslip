@@ -8,8 +8,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/statement"
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/statement"
+	"github.com/vincentsch/tabslip/internal/store"
 )
 
 type spendGroup struct {

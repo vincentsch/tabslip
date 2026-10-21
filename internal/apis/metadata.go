@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 const Limit = 10 * 1024 * 1024

@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func TestSupplementTransactionPreservesSignedRecords(t *testing.T) {
@@ -52,7 +52,7 @@ func TestSupplementTransactionPreservesSignedRecords(t *testing.T) {
 			json.Unmarshal(original, &e)
 			payload, _ := base64.StdEncoding.DecodeString(e.Payload)
 			zero := "0"
-			supplement := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(payload), Source: "openrouter.generation", Cost: &zero, Currency: "USD", Attempts: []receipt.Attempt{}, Findings: []receipt.Finding{}}
+			supplement := &receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(payload), Source: "openrouter.generation", Cost: &zero, Currency: "USD", Attempts: []receipt.Attempt{}, Findings: []receipt.Finding{}}
 			signed, err := receipt.SignSupplement(supplement, s.Key)
 			if err != nil {
 				t.Fatal(err)

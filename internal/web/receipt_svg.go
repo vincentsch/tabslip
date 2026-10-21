@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
 )
 
 // Wrap keeps every rune, preferring the separators common in model names.
@@ -34,7 +34,7 @@ func wrap(s string, width int) []string {
 func receiptSVG(c store.Call, valid bool) (template.HTML, string) {
 	r := c.Receipt
 	s := c.Summary
-	lines := []string{"TOLLGLASS", r.Time.Started, "RECEIPT " + r.ID[:min(len(r.ID), 12)] + "…" + r.ID[max(0, len(r.ID)-8):], "──────────────────────────────────────"}
+	lines := []string{"TABSLIP", r.Time.Started, "RECEIPT " + r.ID[:min(len(r.ID), 12)] + "…" + r.ID[max(0, len(r.ID)-8):], "──────────────────────────────────────"}
 	add := func(label, v string) {
 		if len([]rune(label))+len([]rune(v))+1 <= 38 {
 			lines = append(lines, label+strings.Repeat(" ", 38-len([]rune(label))-len([]rune(v)))+v)
@@ -91,7 +91,7 @@ func receiptSVG(c store.Call, valid bool) (template.HTML, string) {
 	// The first footer baseline is h-35; allow its 10-unit ascent and a gap.
 	h := max(len(lines)*17+180, y+int(math.Ceil(stampBelow))+12+10+35)
 	var b bytes.Buffer
-	fmt.Fprintf(&b, `<svg class="paper" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="receipt-title" viewBox="0 0 340 %d"><title id="receipt-title">Receipt %s, %s by your Tollglass</title><path fill="#F4EFE4" d="M0 8`, h, html.EscapeString(r.ID), stamp)
+	fmt.Fprintf(&b, `<svg class="paper" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="receipt-title" viewBox="0 0 340 %d"><title id="receipt-title">Receipt %s, %s by your Tabslip</title><path fill="#F4EFE4" d="M0 8`, h, html.EscapeString(r.ID), stamp)
 	for x := 0; x < 340; x += 8 {
 		fmt.Fprintf(&b, " L%d 0 L%d 8", x+4, x+8)
 	}
@@ -105,7 +105,7 @@ func receiptSVG(c store.Call, valid bool) (template.HTML, string) {
 	}
 	fmt.Fprintf(&b, `<g transform="rotate(-6 170 %d)" fill="%s"><rect x="50" y="%d" width="240" height="63" rx="8" fill="none" stroke="%s" stroke-width="2"/><rect x="54" y="%d" width="232" height="55" rx="6" fill="none" stroke="%s" stroke-dasharray="3 2"/><text x="170" y="%d" text-anchor="middle" font-family="monospace" font-size="24">%s</text><text x="170" y="%d" text-anchor="middle" font-family="monospace" font-size="11">%s</text></g>`, y, ink, y-20, ink, y-16, ink, y+8, stamp, y+28, html.EscapeString(r.Instance.KeyID))
 	fmt.Fprintf(&b, `<text x="16" y="%d" fill="#26231D" font-size="10">Model and token values are reported</text><text x="16" y="%d" fill="#26231D" font-size="10">by the provider.</text></svg>`, h-35, h-20)
-	return template.HTML(b.String()), strings.Join(lines, "\n") + "\n" + stamp + " by your Tollglass " + r.Instance.KeyID + "\nModel and token values are reported by the provider."
+	return template.HTML(b.String()), strings.Join(lines, "\n") + "\n" + stamp + " by your Tabslip " + r.Instance.KeyID + "\nModel and token values are reported by the provider."
 }
 
 func costText(amount *string, source string) string {

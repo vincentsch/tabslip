@@ -35,7 +35,7 @@ func TestDSSESignatureAndNulls(t *testing.T) {
 	var env Envelope
 	json.Unmarshal(b, &env)
 	sig, _ := base64.StdEncoding.DecodeString(env.Signatures[0].Sig)
-	pae := []byte("DSSEv1 38 application/vnd.tollglass.receipt+json " + strconv.Itoa(len(p)) + " ")
+	pae := []byte("DSSEv1 36 application/vnd.tabslip.receipt+json " + strconv.Itoa(len(p)) + " ")
 	pae = append(pae, p...)
 	if !ed25519.Verify(pub, pae, sig) {
 		t.Fatal("signature does not use DSSE PAE")

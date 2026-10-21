@@ -9,7 +9,7 @@ import (
 	"io"
 )
 
-const ClaimsLimit = "Model names, token counts and provider cost come from the provider. Tollglass did not check the model itself."
+const ClaimsLimit = "Model names, token counts and provider cost come from the provider. Tabslip did not check the model itself."
 
 type Range struct {
 	From string `json:"from"`
@@ -68,7 +68,7 @@ func VerifyEnvelopes(b Bundle, pub ed25519.PublicKey) Verification {
 		}
 		result.Envelopes = append(result.Envelopes, r)
 	}
-	if b.Type != "tollglass.bundle/v1" || b.KeyID != id {
+	if b.Type != "tabslip.bundle/v1" || b.KeyID != id {
 		add("bundle", fmt.Errorf("invalid bundle type or key id"))
 	}
 	for i, raw := range b.Receipts {
@@ -79,7 +79,7 @@ func VerifyEnvelopes(b Bundle, pub ed25519.PublicKey) Verification {
 		if parsed {
 			name = r.ID
 		}
-		if err == nil && (!parsed || r.Type != "tollglass.receipt/v1" || r.Instance.KeyID != id) {
+		if err == nil && (!parsed || r.Type != "tabslip.receipt/v1" || r.Instance.KeyID != id) {
 			err = fmt.Errorf("invalid receipt type or key id")
 		}
 		if err == nil {
@@ -99,7 +99,7 @@ func VerifyEnvelopes(b Bundle, pub ed25519.PublicKey) Verification {
 		if parsed {
 			name += " for " + s.ReceiptID
 		}
-		if err == nil && (!parsed || s.Type != "tollglass.supplement/v1") {
+		if err == nil && (!parsed || s.Type != "tabslip.supplement/v1") {
 			err = fmt.Errorf("invalid supplement type")
 		}
 		if err == nil && (digests[s.ReceiptID] == "" || digests[s.ReceiptID] != s.ReceiptSHA256) {

@@ -21,10 +21,10 @@ import (
 	"time"
 
 	"github.com/vincentsch/rungrad/testutil"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 func ptr[T any](v T) *T { return &v }
@@ -53,7 +53,7 @@ func seedReads(t *testing.T) (string, string) {
 	var e receipt.Envelope
 	json.Unmarshal(b, &e)
 	p, _ := base64.StdEncoding.DecodeString(e.Payload)
-	s := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Source: "openrouter.generation", Cost: ptr("0.100000000000000001"), Currency: "USD", DataRegion: ptr("eu"), Attempts: []receipt.Attempt{{Provider: ptr("Known provider"), Status: ptr(200)}}}
+	s := &receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Source: "openrouter.generation", Cost: ptr("0.100000000000000001"), Currency: "USD", DataRegion: ptr("eu"), Attempts: []receipt.Attempt{{Provider: ptr("Known provider"), Status: ptr(200)}}}
 	db.SaveSupplement(s)
 	db.Flush()
 	other := receipt.New(db.KeyID, time.Date(2026, 10, 19, 0, 0, 0, 0, time.UTC))
@@ -103,7 +103,7 @@ func TestReadFiltersAndGoldenOutput(t *testing.T) {
 	if r.Exit != 0 {
 		t.Fatal(r)
 	}
-	golden(t, "show.txt", regexp.MustCompile(`tg_[0-9a-f]{16}`).ReplaceAllString(r.Stdout, "tg_6f1c2a9b04d3e871"))
+	golden(t, "show.txt", regexp.MustCompile(`ts_[0-9a-f]{16}`).ReplaceAllString(r.Stdout, "ts_6f1c2a9b04d3e871"))
 	for _, line := range strings.Split(strings.TrimSpace(r.Stdout), "\n") {
 		if len([]rune(line)) > 44 {
 			t.Fatalf("receipt too wide: %q", line)
@@ -164,7 +164,7 @@ func TestExportFormatsAndPreviews(t *testing.T) {
 					t.Fatal(v)
 				}
 			}
-			v := runRead(t, dir, "verify", out, "--key-id", "tg_different", "--json")
+			v := runRead(t, dir, "verify", out, "--key-id", "ts_different", "--json")
 			if v.Exit != 11 || !strings.Contains(v.Stdout, "signer mismatch") {
 				t.Fatal(v)
 			}
@@ -344,7 +344,7 @@ func TestDoctorOfflineAndReachability(t *testing.T) {
 		t.Fatal("accepted non-directory")
 	}
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w, `{"tool":"tollglass","version":"test","key_id":"tg_test","unrecorded_calls":3}`)
+		fmt.Fprint(w, `{"tool":"tabslip","version":"test","key_id":"ts_test","unrecorded_calls":3}`)
 	}))
 	defer server.Close()
 	fmt.Sscanf(strings.Split(server.URL, ":")[2], "%d", &cfg.Port)
@@ -410,10 +410,10 @@ func TestOrdinaryErrorsRenderOnce(t *testing.T) {
 		{"unknown command", []string{"nosuch"}, 1, "unknown command"},
 		{"missing receipt", []string{"show", "rcpt_00000000000000000000000000"}, 5, "not found"},
 	}
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, `{"tool":"tollglass"}`) }))
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, `{"tool":"tabslip"}`) }))
 	defer server.Close()
 	port := strings.Split(server.URL, ":")[2]
-	cases = append(cases, errorCase{"busy port", []string{"serve", "--port", port}, 2, "Tollglass is already running"})
+	cases = append(cases, errorCase{"busy port", []string{"serve", "--port", port}, 2, "Tabslip is already running"})
 	for _, tc := range cases {
 		for _, machine := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/json=%v", tc.name, machine), func(t *testing.T) {

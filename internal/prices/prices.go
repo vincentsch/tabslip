@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 //go:generate go run ./gen

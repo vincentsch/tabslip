@@ -1,4 +1,4 @@
-# Releasing Tollglass
+# Releasing Tabslip
 
 This is the procedure for Vincent to run when publication is authorized.
 The repository is currently private. Local preparation has not established
@@ -44,9 +44,9 @@ Build all six files from that committed candidate:
 make build-all VERSION=0.1.0 COMMIT="$(git rev-parse HEAD)"
 ```
 
-`dist/` contains `tollglass-linux-amd64`, `tollglass-linux-arm64`,
-`tollglass-darwin-amd64`, `tollglass-darwin-arm64`,
-`tollglass-windows-amd64.exe`, `tollglass-windows-arm64.exe` and
+`dist/` contains `tabslip-linux-amd64`, `tabslip-linux-arm64`,
+`tabslip-darwin-amd64`, `tabslip-darwin-arm64`,
+`tabslip-windows-amd64.exe`, `tabslip-windows-arm64.exe` and
 `checksums.txt`. These static binaries are the release assets; keep these
 names and bytes through attestation and upload. Run the native binary's
 `--version`, `__rungrad_manifest` and `demo`. Check `/healthz` and a new
@@ -58,17 +58,17 @@ you cannot run them. Cross-compilation does not prove native execution.
 Use a disposable local directory for the fake release downloads:
 
 ```sh
-scripts/fake-release.sh dist /tmp/tollglass-release-fixture v0.1.0
-python3 -m http.server 8765 --bind 127.0.0.1 --directory /tmp/tollglass-release-fixture
+scripts/fake-release.sh dist /tmp/tabslip-release-fixture v0.1.0
+python3 -m http.server 8765 --bind 127.0.0.1 --directory /tmp/tabslip-release-fixture
 ```
 
 In another shell, install into a temporary prefix:
 
 ```sh
-INSTALL_DIR=/tmp/tollglass-install TOLLGLASS_VERSION=v0.1.0 \
-  TOLLGLASS_DOWNLOAD_BASE=http://127.0.0.1:8765 sh install.sh
-/tmp/tollglass-install/tollglass --version
-/tmp/tollglass-install/tollglass __rungrad_manifest
+INSTALL_DIR=/tmp/tabslip-install TABSLIP_VERSION=v0.1.0 \
+  TABSLIP_DOWNLOAD_BASE=http://127.0.0.1:8765 sh install.sh
+/tmp/tabslip-install/tabslip --version
+/tmp/tabslip-install/tabslip __rungrad_manifest
 ```
 
 Check the reported version and commit against the candidate. Compare its hash
@@ -80,7 +80,7 @@ and remove the disposable directories afterward.
 
 When publication is authorized, make the repository public. Immediately enable
 GitHub private vulnerability reporting and verify the
-[reporting channel](https://github.com/vincentsch/tollglass/security/advisories/new)
+[reporting channel](https://github.com/vincentsch/tabslip/security/advisories/new)
 before announcing a release. After enabling reporting and verifying the channel,
 remove the obsolete availability caveat from `SECURITY.md`. Do not claim the
 channel works before this check.
@@ -102,11 +102,11 @@ separate check of the binary's recorded build origin. Install GitHub CLI,
 then run:
 
 ```sh
-gh attestation verify tollglass-<os>-<arch> --repo vincentsch/tollglass
+gh attestation verify tabslip-<os>-<arch> --repo vincentsch/tabslip
 ```
 
 Replace `<os>` with `linux`, `darwin` or `windows`, and `<arch>` with `amd64`
-or `arm64`. Add `.exe` for Windows, for example `tollglass-windows-amd64.exe`.
+or `arm64`. Add `.exe` for Windows, for example `tabslip-windows-amd64.exe`.
 Inspect the verified source repository, release workflow and source commit.
 See the [attestation action](https://github.com/actions/attest-build-provenance)
 for provenance details. Check each of the six binaries separately.
@@ -114,20 +114,20 @@ for provenance details. Check each of the six binaries separately.
 Verify the public raw installer URL and release downloads from a fresh shell:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
-tollglass --version
-tollglass demo
+curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
+tabslip --version
+tabslip demo
 ```
 
 Use a temporary `INSTALL_DIR` if replacing an installed binary is unwanted.
-Also test `TOLLGLASS_VERSION=v0.1.0` and native Windows download/checksum steps
+Also test `TABSLIP_VERSION=v0.1.0` and native Windows download/checksum steps
 from [the quickstart](docs/quickstart.md#install). Native PowerShell download
 and checksum commands still need execution on Windows; Linux review cannot
 establish that result. Confirm all eight demo receipts, then test the source fallback
 in a temporary `GOBIN`:
 
 ```sh
-go install github.com/vincentsch/tollglass/cmd/tollglass@latest
+go install github.com/vincentsch/tabslip/cmd/tabslip@latest
 ```
 
 The source fallback reports `dev`. Confirm its module revision and manifest.

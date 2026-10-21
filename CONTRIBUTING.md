@@ -1,6 +1,6 @@
-# Contributing to Tollglass
+# Contributing to Tabslip
 
-Tollglass is a Go program with an embedded local page. There is no frontend
+Tabslip is a Go program with an embedded local page. There is no frontend
 build step. Use the Go version in [go.mod](go.mod); `GOTOOLCHAIN=auto` can
 fetch it. Release builds use `CGO_ENABLED=0` and need no installed runtime.
 
@@ -10,7 +10,7 @@ On Linux or macOS with Make:
 
 ```sh
 make build
-./bin/tollglass --version
+./bin/tabslip --version
 make test race lint docs-check conformance
 python3 scripts/docs-links.py
 ```

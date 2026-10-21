@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 type Capture struct {

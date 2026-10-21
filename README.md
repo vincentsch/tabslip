@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/wordmark-dark.svg">
-    <img src="docs/media/wordmark-light.svg" alt="Tollglass" width="440" height="88">
+    <img src="docs/media/wordmark-light.svg" alt="Tabslip" width="440" height="88">
   </picture>
 </p>
 
 <p align="center"><strong>Receipts for your AI API calls.</strong></p>
 
-Tollglass forwards calls to your AI provider and keeps receipts signed by your Tollglass.
+Tabslip forwards calls to your AI provider and keeps receipts signed by your Tabslip.
 
 <p align="center"><a href="docs/quickstart.md">Quickstart</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
 
@@ -20,27 +20,27 @@ Tollglass forwards calls to your AI provider and keeps receipts signed by your T
 Copy this into your coding agent inside the project you want to connect:
 
 ```text
-Set up Tollglass for this project.
-Use https://github.com/vincentsch/tollglass: read its AGENTS.md and follow
+Set up Tabslip for this project.
+Use https://github.com/vincentsch/tabslip: read its AGENTS.md and follow
 the steps. Route this project's AI API calls through it, make one real call,
 and show me the receipt.
 ```
 
 The agent finds your AI client, keeps its provider and keys, and saves a small base URL change.
-It installs or reuses Tollglass, makes one provider call that may cost money, and shows the receipt and undo steps.
+It installs or reuses Tabslip, makes one provider call that may cost money, and shows the receipt and undo steps.
 Read [what the agent changes](docs/setup-with-an-agent.md).
 
 ## Try it without a key
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
-tollglass demo
+curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
+tabslip demo
 ```
 
 Open the printed Page URL. The demo sends eight simulated calls, including a
 fallback, an error and a call with unknown usage. It makes no external requests.
 It prints ready-to-run export and verify commands. Its temporary data directory
-is removed on Ctrl+C; use `tollglass demo --data-dir ./demo-data` to keep it.
+is removed on Ctrl+C; use `tabslip demo --data-dir ./demo-data` to keep it.
 See the [quickstart](docs/quickstart.md) for installation and demo URLs.
 
 ## Connect your app
@@ -48,7 +48,7 @@ See the [quickstart](docs/quickstart.md) for installation and demo URLs.
 Start the gateway and open `http://127.0.0.1:4545`:
 
 ```sh
-tollglass serve
+tabslip serve
 ```
 
 Your app keeps its key and provider; only the base URL changes.
@@ -71,7 +71,7 @@ print(response.choices[0].message.content)
 ```
 
 This makes a provider call that may cost money. Save the URL in your project's
-configuration and keep Tollglass running while the app uses it.
+configuration and keep Tabslip running while the app uses it.
 The [quickstart](docs/quickstart.md#connect-your-app) has all four SDK snippets,
 plus links to curl and environment examples. See [upstreams](docs/upstreams.md)
 for API coverage, custom providers, containers and servers.
@@ -80,12 +80,12 @@ for API coverage, custom providers, containers and servers.
 
 A receipt records requested and reported models, usage, cost and findings.
 Model names, tokens and provider cost are reported by the provider.
-Tollglass labels its measured times, sizes, hashes and errors as observed.
+Tabslip labels its measured times, sizes, hashes and errors as observed.
 Missing values stay unknown, never zero. Cost can be reported, estimated from
 a versioned price table, or unknown. [Receipt fields](docs/receipts.md) and
 [costs](docs/costs.md) explain the details and signed supplements.
 
-A signature shows the receipt has not changed since your Tollglass signed it.
+A signature shows the receipt has not changed since your Tabslip signed it.
 It cannot check the provider's claims or stop the key owner inventing records.
 See [sharing and offline verification](docs/verify.md) for commands and exit codes.
 

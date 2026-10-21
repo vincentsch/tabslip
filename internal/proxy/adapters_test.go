@@ -14,7 +14,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func TestAdapterCaptureThroughProxy(t *testing.T) {

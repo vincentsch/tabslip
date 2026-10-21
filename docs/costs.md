@@ -33,8 +33,8 @@ Run these against your selected instance directory, using a concrete path in
 place of `./instance-data`:
 
 ```sh
-tollglass prices --data-dir ./instance-data
-tollglass prices update --data-dir ./instance-data --dry-run
+tabslip prices --data-dir ./instance-data
+tabslip prices update --data-dir ./instance-data --dry-run
 ```
 
 The first command shows the selected table's date and SHA-256. The second
@@ -48,7 +48,7 @@ and already signed costs never change. Demo mode always uses embedded prices.
 The embedded snapshot comes from LiteLLM revision
 `4818b767d8b4c4e5fa9885ab953d6f5cfe7c7ca5`. Developers can reproduce it with
 `go generate ./internal/prices`, which downloads that pinned revision.
-See [prices commands](reference/tollglass_prices.md) and
+See [prices commands](reference/tabslip_prices.md) and
 [receipt fields](receipts.md).
 
 See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

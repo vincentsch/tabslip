@@ -15,8 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/apis"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/apis"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func openTest(t *testing.T, dir string, days int) *Store {
@@ -68,7 +68,7 @@ func sample(s *Store, when time.Time) *receipt.Receipt {
 }
 func readDB(t *testing.T, dir string) *sql.DB {
 	t.Helper()
-	db, e := sql.Open("sqlite", filepath.Join(dir, "tollglass.db"))
+	db, e := sql.Open("sqlite", filepath.Join(dir, "tabslip.db"))
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -225,7 +225,7 @@ func TestContentOnlyInDesignatedTable(t *testing.T) {
 				t.Fatal("content policy")
 			}
 			if !keep {
-				raw, _ := os.ReadFile(filepath.Join(dir, "tollglass.db"))
+				raw, _ := os.ReadFile(filepath.Join(dir, "tabslip.db"))
 				if bytes.Contains(raw, []byte("private prompt")) {
 					t.Fatal("content in database")
 				}
@@ -359,7 +359,7 @@ func TestTerminalProviderErrorsDoNotStoreSensitiveMessages(t *testing.T) {
 			t.Fatal("message in signed receipt")
 		}
 	}
-	raw, err := os.ReadFile(filepath.Join(dir, "tollglass.db"))
+	raw, err := os.ReadFile(filepath.Join(dir, "tabslip.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +410,7 @@ func TestRetentionSettingsDeleteContentsAndSupplementsAndZeroKeepsAll(t *testing
 	s.Save(r, &Content{Request: []byte("old"), Response: []byte("old")})
 	s.Flush()
 	p, _ := json.Marshal(r)
-	supp := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p)}
+	supp := &receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p)}
 	s.SaveSupplement(supp)
 	s.Flush()
 	if err := s.SetRetention(0); err != nil {

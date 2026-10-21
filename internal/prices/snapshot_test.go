@@ -3,7 +3,7 @@ package prices
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 	"io"
 	"net/http"
 	"net/http/httptest"

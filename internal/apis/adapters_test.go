@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func parseFixture(t *testing.T, api, name string) (*receipt.Receipt, *Capture) {
@@ -16,7 +16,7 @@ func parseFixture(t *testing.T, api, name string) (*receipt.Receipt, *Capture) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r := receipt.New("tg_test", time.Now())
+	r := receipt.New("ts_test", time.Now())
 	r.Request.API = api
 	c := &Capture{Receipt: r, Keep: true}
 	c.Parse(strings.NewReader(string(b)), strings.HasSuffix(name, "sse"))

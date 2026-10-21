@@ -1,9 +1,9 @@
 # Runnable examples
 
-These examples send one call through Tollglass using environment settings.
+These examples send one call through Tabslip using environment settings.
 Each directory has install/run commands, a placeholder `.env.example`, a
 key-free demo route and a separate provider configuration. Start
-`tollglass demo`, then use its printed base URLs and data directory. The
+`tabslip demo`, then use its printed base URLs and data directory. The
 OpenAI-style demo route ends in `/demo/v1`; Anthropic ends in `/demo`.
 The synthetic key `demo` meets SDK requirements. No paid calls are needed.
 

@@ -14,9 +14,9 @@ import (
 )
 
 var releaseAssets = []string{
-	"tollglass-linux-amd64", "tollglass-linux-arm64",
-	"tollglass-darwin-amd64", "tollglass-darwin-arm64",
-	"tollglass-windows-amd64.exe", "tollglass-windows-arm64.exe",
+	"tabslip-linux-amd64", "tabslip-linux-arm64",
+	"tabslip-darwin-amd64", "tabslip-darwin-arm64",
+	"tabslip-windows-amd64.exe", "tabslip-windows-arm64.exe",
 }
 
 func put(t *testing.T, path, body string) {
@@ -130,14 +130,14 @@ func TestInstallerLocalRelease(t *testing.T) {
 				body, _ := os.ReadFile(filepath.Join(dist, releaseAssets[0]))
 				put(t, native, string(body))
 			})
-			binary := "tollglass"
+			binary := "tabslip"
 			if strings.HasSuffix(tc.asset, ".exe") {
 				binary += ".exe"
 			}
 			destination := filepath.Join(prefix, binary)
 			put(t, destination, "existing install sentinel")
 			cmd := exec.Command("/bin/sh", script)
-			cmd.Env = append(os.Environ(), "PATH="+shim, "TMPDIR="+tmp, "INSTALL_DIR="+prefix, "TOLLGLASS_DOWNLOAD_BASE="+server.URL, "TOLLGLASS_VERSION="+tc.version)
+			cmd.Env = append(os.Environ(), "PATH="+shim, "TMPDIR="+tmp, "INSTALL_DIR="+prefix, "TABSLIP_DOWNLOAD_BASE="+server.URL, "TABSLIP_VERSION="+tc.version)
 			output, err := cmd.CombinedOutput()
 			got, readErr := os.ReadFile(destination)
 			if readErr != nil {
@@ -149,7 +149,7 @@ func TestInstallerLocalRelease(t *testing.T) {
 				}
 			} else {
 				want, _ := os.ReadFile(filepath.Join(dist, tc.asset))
-				if err != nil || string(got) != string(want) || !strings.Contains(string(output), "Next: tollglass demo") || !strings.Contains(string(output), "export PATH=") {
+				if err != nil || string(got) != string(want) || !strings.Contains(string(output), "Next: tabslip demo") || !strings.Contains(string(output), "export PATH=") {
 					t.Fatalf("installation failed: %v: %s", err, output)
 				}
 				if tc.name == "latest" || tc.name == "pinned" {

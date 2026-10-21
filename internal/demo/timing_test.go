@@ -12,10 +12,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/proxy"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/proxy"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 func TestDelayProfiles(t *testing.T) {

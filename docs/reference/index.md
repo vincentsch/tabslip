@@ -1,20 +1,20 @@
-# tollglass command reference
+# tabslip command reference
 
 Keep signed receipts for AI API calls
 
 ## Commands
 
-- [tollglass demo](tollglass_demo.md) - Try eight simulated AI calls offline
-- [tollglass doctor](tollglass_doctor.md) - Check local setup and upstream reachability
-- [tollglass export](tollglass_export.md) - Export content-free receipts and spending statements
-- [tollglass key](tollglass_key.md) - Show the existing instance public key
-- [tollglass key export](tollglass_key_export.md) - Export the existing PEM public key
-- [tollglass prices](tollglass_prices.md) - Show the selected local price table
-- [tollglass prices update](tollglass_prices_update.md) - Download and install a LiteLLM price snapshot
-- [tollglass receipts](tollglass_receipts.md) - List recent receipts, newest first
-- [tollglass serve](tollglass_serve.md) - Start the local AI gateway
-- [tollglass show](tollglass_show.md) - Show one signed receipt
-- [tollglass verify](tollglass_verify.md) - Check signatures and signer identity offline
+- [tabslip demo](tabslip_demo.md) - Try eight simulated AI calls offline
+- [tabslip doctor](tabslip_doctor.md) - Check local setup and upstream reachability
+- [tabslip export](tabslip_export.md) - Export content-free receipts and spending statements
+- [tabslip key](tabslip_key.md) - Show the existing instance public key
+- [tabslip key export](tabslip_key_export.md) - Export the existing PEM public key
+- [tabslip prices](tabslip_prices.md) - Show the selected local price table
+- [tabslip prices update](tabslip_prices_update.md) - Download and install a LiteLLM price snapshot
+- [tabslip receipts](tabslip_receipts.md) - List recent receipts, newest first
+- [tabslip serve](tabslip_serve.md) - Start the local AI gateway
+- [tabslip show](tabslip_show.md) - Show one signed receipt
+- [tabslip verify](tabslip_verify.md) - Check signatures and signer identity offline
 
 ## Global flags
 

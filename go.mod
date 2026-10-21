@@ -1,4 +1,4 @@
-module github.com/vincentsch/tollglass
+module github.com/vincentsch/tabslip
 
 go 1.27.2
 

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 )
 
-const SupplementPayloadType = "application/vnd.tollglass.supplement+json"
+const SupplementPayloadType = "application/vnd.tabslip.supplement+json"
 
 type Attempt struct {
 	Provider *string `json:"provider"`

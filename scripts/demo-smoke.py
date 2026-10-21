@@ -30,12 +30,12 @@ def verify(envelope, public_key, payload_type):
 
 def check_records(data, expected):
     public_key = load_pem_public_key((data / 'key.pub').read_bytes())
-    with sqlite3.connect(data / 'tollglass.db') as db:
+    with sqlite3.connect(data / 'tabslip.db') as db:
         rows = db.execute('SELECT id,envelope,cost_amount,cost_source,provider,has_findings,input_tokens FROM receipts ORDER BY started_at,id').fetchall()
         assert len(rows) == expected, len(rows)
         receipts = {}
         for row in rows:
-            receipt, payload = verify(row[1], public_key, 'application/vnd.tollglass.receipt+json')
+            receipt, payload = verify(row[1], public_key, 'application/vnd.tabslip.receipt+json')
             receipts[row[0]] = (receipt, payload)
             assert receipt['cost']['price_table'] is None
             assert 'ignored-synthetic-key' not in payload.decode()
@@ -44,7 +44,7 @@ def check_records(data, expected):
                 assert receipt['usage']['input_tokens'] == 100
         supplements = db.execute('SELECT receipt_id,envelope FROM supplements').fetchall()
         assert len(supplements) == 1
-        supplement, _ = verify(supplements[0][1], public_key, 'application/vnd.tollglass.supplement+json')
+        supplement, _ = verify(supplements[0][1], public_key, 'application/vnd.tabslip.supplement+json')
         receipt, payload = receipts[supplement['receipt_id']]
         assert supplement['receipt_sha256'] == hashlib.sha256(payload).hexdigest()
         assert receipt['request']['model'] == 'demo/large'
@@ -89,7 +89,7 @@ def run(binary, explicit, root):
     if explicit:
         args += ['--data-dir', str(root / 'kept-data')]
     proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                            env={**os.environ, 'TOLLGLASS_CONFIG': str(config)})
+                            env={**os.environ, 'TABSLIP_CONFIG': str(config)})
     started = time.monotonic()
     data = None
     try:
@@ -109,7 +109,7 @@ def run(binary, explicit, root):
         assert info['base_urls'] == {'openai': info['page_url'] + '/demo/v1', 'anthropic': info['page_url'] + '/demo'}
         assert set(info['commands']) == {'export', 'key_export', 'verify'}
         data = Path(info['data_dir'])
-        assert info['key_id'].startswith('tg_')
+        assert info['key_id'].startswith('ts_')
         before = check_records(data, 8)
         req = urllib.request.Request(info['base_urls']['openai'] + '/chat/completions',
                                      data=b'{"model":"gpt-4.1","messages":[{"role":"user","content":"hi"}]}',
@@ -146,8 +146,8 @@ def interrupt_seed(binary, explicit, root):
     try:
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
-            candidates = [data] if explicit else list(temporary.glob('tollglass-demo-*'))
-            if candidates and (candidates[0] / 'tollglass.db').exists():
+            candidates = [data] if explicit else list(temporary.glob('tabslip-demo-*'))
+            if candidates and (candidates[0] / 'tabslip.db').exists():
                 data = candidates[0]
                 break
             assert proc.poll() is None, proc.communicate()
@@ -173,7 +173,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
     args = parser.parse_args()
-    with tempfile.TemporaryDirectory(prefix='tollglass-demo-smoke-') as directory:
+    with tempfile.TemporaryDirectory(prefix='tabslip-demo-smoke-') as directory:
         root = Path(directory)
         for explicit in (False, True):
             run(args.binary.resolve(), explicit, root)

@@ -4,7 +4,7 @@ Run doctor with the same config and data directory as your server. For
 example, replace these illustrative paths with the selected instance paths:
 
 ```sh
-tollglass doctor --config ./config.yaml --data-dir ./instance-data --json
+tabslip doctor --config ./config.yaml --data-dir ./instance-data --json
 ```
 
 Doctor reports `ok`, `info`, `warn` and `fail`. Exit 2 means a failed check.
@@ -15,22 +15,22 @@ repair files, and an HTTP answer does not validate credentials.
 
 | Doctor message | What to do |
 | --- | --- |
-| `config file is malformed; check its YAML settings` | Correct the YAML in the selected config; check `--config` and `TOLLGLASS_CONFIG`. |
+| `config file is malformed; check its YAML settings` | Correct the YAML in the selected config; check `--config` and `TABSLIP_CONFIG`. |
 | `Data location is not writable.` | Correct permissions or select a writable `--data-dir`; check disk space too. |
-| `Key and database are not created yet. Start Tollglass when ready.` | Normal before first start; no repair is needed. |
+| `Key and database are not created yet. Start Tabslip when ready.` | Normal before first start; no repair is needed. |
 | `Public key is missing or invalid.` | Restore the original pair with the database, or select a new data directory. |
 | `Cannot read the database.` | Restore the database or select a new directory; retain the original for recovery. |
 | `Database and instance key do not match.` | Restore the matching signing key. Never create a replacement identity over existing receipts. |
 
 Keep `key.ed25519`, `key.pub` and the database together. Do not delete them to
 silence a diagnostic. A running instance's port check names its key id;
-compare it with `Database and key pair match: tg_…`. A mismatch means the
+compare it with `Database and key pair match: ts_…`. A mismatch means the
 selected data directory may belong to another instance.
 
 ## Port and upstream access
 
 `Cannot use port 4545; another program may be listening.` means the selected
-address could not be bound and no matching Tollglass health response was found.
+address could not be bound and no matching Tabslip health response was found.
 Leave the other process running. Select a free port and save it in your
 resolved config, preserving the other settings:
 
@@ -52,7 +52,7 @@ Check the client's persisted base URL from a fresh shell. Supported capture
 paths are listed in [upstreams](upstreams.md); other paths forward without
 receipts. Demo paths are `/demo/v1` and `/demo` at the printed free port.
 Clear page filters and use `receipts --data-dir ./instance-data --limit 0`
-to check the same database. A unique `X-Tollglass-Tag` helps match a call;
+to check the same database. A unique `X-Tabslip-Tag` helps match a call;
 wait up to 30 seconds for recording before retrying.
 
 Check `/healthz` on the selected port and rerun doctor. The
@@ -67,7 +67,7 @@ It does not mean zero. A stream that ends before its terminal event is marked
 incomplete. See [findings](receipts.md#findings). If an OpenRouter supplement
 is absent, its lookup may have failed; the base receipt stays usable.
 
-## The app fails after Tollglass stops
+## The app fails after Tabslip stops
 
 Restart with the recorded config, data directory and required environment,
 or restore the original provider URL first. Installation does not add a

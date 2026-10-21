@@ -26,11 +26,11 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
-	"github.com/vincentsch/tollglass/internal/apis"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/apis"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 type captured struct {
@@ -71,7 +71,7 @@ func gateway(t *testing.T, h http.HandlerFunc, keep bool) (*Gateway, *recorder, 
 	s := &recorder{make(chan captured, 10)}
 	c := config.Default()
 	c.KeepContent = keep
-	g := &Gateway{Upstreams: us, Config: c, KeyID: "tg_test", Store: s, Transport: Transport()}
+	g := &Gateway{Upstreams: us, Config: c, KeyID: "ts_test", Store: s, Transport: Transport()}
 	srv := httptest.NewServer(g)
 	t.Cleanup(srv.Close)
 	return g, s, srv
@@ -80,8 +80,8 @@ func call(t *testing.T, srv *httptest.Server, body []byte, tag string) []byte {
 	t.Helper()
 	q, _ := http.NewRequest("POST", srv.URL+"/local/v1/chat/completions?test=1", bytes.NewReader(body))
 	q.Header.Set("Authorization", "Bearer synthetic-private-marker")
-	q.Header.Set("X-Tollglass-Tag", tag)
-	q.Header.Set("X-Tollglass-Internal", "omit")
+	q.Header.Set("X-Tabslip-Tag", tag)
+	q.Header.Set("X-Tabslip-Internal", "omit")
 	q.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Transport: Transport()}
 	defer client.CloseIdleConnections()
@@ -115,7 +115,7 @@ func TestForwardingAndReceipt(t *testing.T) {
 				if !stream && !bytes.Equal(b, request) {
 					t.Error("request changed")
 				}
-				if q.URL.Path != "/v1/chat/completions" || q.URL.RawQuery != "test=1" || q.Header.Get("Authorization") != "Bearer synthetic-private-marker" || q.Header.Get("X-Tollglass-Tag") != "" || q.Header.Get("X-Tollglass-Internal") != "" {
+				if q.URL.Path != "/v1/chat/completions" || q.URL.RawQuery != "test=1" || q.Header.Get("Authorization") != "Bearer synthetic-private-marker" || q.Header.Get("X-Tabslip-Tag") != "" || q.Header.Get("X-Tabslip-Internal") != "" {
 					t.Error("routing or header contract")
 				}
 				if stream {
@@ -622,7 +622,7 @@ func TestFailuresAndPrivateErrorsReachSQLite(t *testing.T) {
 				}
 			}
 			db.Close()
-			read, e := sql.Open("sqlite", filepath.Join(dir, "tollglass.db"))
+			read, e := sql.Open("sqlite", filepath.Join(dir, "tabslip.db"))
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -650,7 +650,7 @@ func TestFailuresAndPrivateErrorsReachSQLite(t *testing.T) {
 			if bytes.Contains(envelope, []byte("private-prompt-and-synthetic-key")) || strings.Contains(logs.String(), "header-only-private-credential") || strings.Contains(logs.String(), "private-prompt-and-synthetic-key") {
 				t.Fatal("private text reached receipt or logs")
 			}
-			raw, _ := os.ReadFile(filepath.Join(dir, "tollglass.db"))
+			raw, _ := os.ReadFile(filepath.Join(dir, "tabslip.db"))
 			if bytes.Contains(raw, []byte("header-only-private-credential")) {
 				t.Fatal("header credential persisted")
 			}
@@ -675,7 +675,7 @@ func TestFailuresAndPrivateErrorsReachSQLite(t *testing.T) {
 }
 func TestEscapedPathsAndHeaderRules(t *testing.T) {
 	_, _, srv := gateway(t, func(w http.ResponseWriter, r *http.Request) {
-		if r.RequestURI != "/v1/files/a%2Fb?x=1&x=2" || r.Header.Get("Accept-Encoding") != "custom" || r.Header.Get("Cookie") != "session=synthetic" || r.Header.Get("X-Forwarded-For") != "192.0.2.1" || r.Header.Get("X-Remove") != "" || r.Header.Get("X-Tollglass-Tag") != "" {
+		if r.RequestURI != "/v1/files/a%2Fb?x=1&x=2" || r.Header.Get("Accept-Encoding") != "custom" || r.Header.Get("Cookie") != "session=synthetic" || r.Header.Get("X-Forwarded-For") != "192.0.2.1" || r.Header.Get("X-Remove") != "" || r.Header.Get("X-Tabslip-Tag") != "" {
 			t.Errorf("forwarding changed: %s %+v", r.RequestURI, r.Header)
 		}
 		w.Write([]byte("ok"))
@@ -686,7 +686,7 @@ func TestEscapedPathsAndHeaderRules(t *testing.T) {
 	q.Header.Set("X-Forwarded-For", "192.0.2.1")
 	q.Header.Set("Connection", "X-Remove")
 	q.Header.Set("X-Remove", "secret")
-	q.Header.Set("X-Tollglass-Tag", "acme")
+	q.Header.Set("X-Tabslip-Tag", "acme")
 	resp, e := http.DefaultClient.Do(q)
 	if e != nil {
 		t.Fatal(e)

@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/oklog/ulid/v2"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 const Provider = "Demo provider (simulated)"
@@ -225,7 +225,7 @@ func Seed(ctx context.Context, client *http.Client, base string) error {
 			return err
 		}
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-Tollglass-Tag", call.tag)
+		req.Header.Set("X-Tabslip-Tag", call.tag)
 		resp, err := client.Do(req)
 		if err != nil {
 			return err

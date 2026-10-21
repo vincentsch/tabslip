@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/keys"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/keys"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func keyCommand(dir *string) *rungrad.Command {
@@ -26,7 +26,7 @@ func keyCommand(dir *string) *rungrad.Command {
 		}{string(b), receipt.KeyID(k), hex.EncodeToString(h[:])}
 		return f.WriteResult(r, func(w io.Writer) { fmt.Fprintf(w, "Key id: %s\nSHA-256: %s\n%s", r.KeyID, r.Fingerprint, b) })
 	})
-	c.Examples = []string{"tollglass key", "tollglass key --json"}
+	c.Examples = []string{"tabslip key", "tabslip key --json"}
 	var out string
 	ex := command("export", "Export the existing PEM public key", func(f *rungrad.Factory, _ *cobra.Command, _ []string) error {
 		if err := available(out); err != nil {
@@ -47,7 +47,7 @@ func keyCommand(dir *string) *rungrad.Command {
 	})
 	ex.Mutates = true
 	ex.Configure = func(cmd *cobra.Command) { cmd.Flags().StringVar(&out, "out", "", "New PEM output file (required)") }
-	ex.Examples = []string{"tollglass key export --out tollglass.pub", "tollglass key export --out tollglass.pub --dry-run"}
+	ex.Examples = []string{"tabslip key export --out tabslip.pub", "tabslip key export --out tabslip.pub --dry-run"}
 	c.AddCommand(ex)
 	return c
 }

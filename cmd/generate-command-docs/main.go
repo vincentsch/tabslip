@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/vincentsch/rungrad/docsgen"
-	"github.com/vincentsch/tollglass/internal/cli"
+	"github.com/vincentsch/tabslip/internal/cli"
 )
 
 func run(check bool, dir string) error {

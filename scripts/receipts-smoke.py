@@ -13,7 +13,7 @@ parser.add_argument('--binary', required=True)
 parser.add_argument('--html-out', type=pathlib.Path)
 args = parser.parse_args()
 binary = str(pathlib.Path(args.binary).resolve())
-with tempfile.TemporaryDirectory(prefix='tollglass-receipts-') as temp:
+with tempfile.TemporaryDirectory(prefix='tabslip-receipts-') as temp:
     root = pathlib.Path(temp)
     data = root / 'data'
     demo = subprocess.Popen([binary, 'demo', '--data-dir', str(data), '--json'],
@@ -52,18 +52,18 @@ with tempfile.TemporaryDirectory(prefix='tollglass-receipts-') as temp:
             if len(json.loads(run('receipts', '--json').stdout)) == 9:
                 break
             time.sleep(0.02)
-        key = root / 'tollglass.pub'
+        key = root / 'tabslip.pub'
         run('key', 'export', '--out', key)
         for state in ('running', 'stopped'):
             if state == 'stopped':
                 demo.send_signal(signal.SIGTERM)
                 assert demo.wait(timeout=10) == 0
-            bundle = root / f'{state}.tollglass.json'
+            bundle = root / f'{state}.tabslip.json'
             run('export', '--out', bundle)
             run('verify', bundle, '--key', key)
             run('verify', bundle)
             run('verify', bundle, '--key-id', startup['key_id'])
-            run('verify', bundle, '--key-id', 'tg_other', expected=11)
+            run('verify', bundle, '--key-id', 'ts_other', expected=11)
             run('verify', bundle, selected=root / 'foreign', expected=11)
             assert len(json.loads(run('receipts', '--json').stdout)) == 9
             run('show', rows[0]['id'])

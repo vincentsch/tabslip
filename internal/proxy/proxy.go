@@ -18,13 +18,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/apis"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/prices"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
-	"github.com/vincentsch/tollglass/internal/version"
+	"github.com/vincentsch/tabslip/internal/apis"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/prices"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/version"
 )
 
 type Recorder interface {
@@ -81,7 +81,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(405)
 			return
 		}
-		JSON(w, 200, map[string]any{"tool": "tollglass", "version": version.Version, "key_id": g.KeyID, "unrecorded_calls": g.Store.Unrecorded()})
+		JSON(w, 200, map[string]any{"tool": "tabslip", "version": version.Version, "key_id": g.KeyID, "unrecorded_calls": g.Store.Unrecorded()})
 		return
 	}
 	name, path, found := strings.Cut(strings.TrimPrefix(req.URL.Path, "/"), "/")
@@ -121,7 +121,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		r.Request.API = api
 		r.Request.Method = req.Method
 		r.Request.Path = path
-		tag := req.Header.Get("X-Tollglass-Tag")
+		tag := req.Header.Get("X-Tabslip-Tag")
 		if tagPattern.MatchString(tag) {
 			r.Request.Tag = tag
 		}
@@ -277,7 +277,7 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 		for k := range p.Out.Header {
-			if strings.HasPrefix(strings.ToLower(k), "x-tollglass-") {
+			if strings.HasPrefix(strings.ToLower(k), "x-tabslip-") {
 				p.Out.Header.Del(k)
 			}
 		}

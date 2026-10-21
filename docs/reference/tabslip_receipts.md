@@ -1,18 +1,18 @@
-# tollglass receipts
+# tabslip receipts
 
 List recent receipts, newest first
 
 ## Usage
 
 ```
-tollglass receipts
+tabslip receipts
 ```
 
 ## Examples
 
 ```
-tollglass receipts
-tollglass receipts --tag acme-shop --since 2026-10-01 --json
+tabslip receipts
+tabslip receipts --tag acme-shop --since 2026-10-01 --json
 ```
 
 ## Flags
@@ -30,6 +30,6 @@ human, json
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

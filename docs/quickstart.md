@@ -1,14 +1,14 @@
-# Start using Tollglass
+# Start using Tabslip
 
-Tollglass forwards AI API calls and keeps signed receipts on your computer.
+Tabslip forwards AI API calls and keeps signed receipts on your computer.
 You can [ask your coding agent to connect a project](setup-with-an-agent.md)
 or follow the steps below. The [FAQ](faq.md) covers costs, storage and stopping.
 
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
-tollglass --version
+curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
+tabslip --version
 ```
 
 The installer needs a POSIX shell, curl, and `sha256sum` or `shasum`.
@@ -17,21 +17,21 @@ directory to PATH if needed. Release binaries do not need Go or another runtime.
 
 The installer verifies SHA-256 checksums before replacing the binary.
 `INSTALL_DIR` selects its destination (default `~/.local/bin`);
-`TOLLGLASS_VERSION` selects a release tag. From a checkout:
+`TABSLIP_VERSION` selects a release tag. From a checkout:
 
 ```sh
-TOLLGLASS_VERSION=v0.1.0 sh install.sh
+TABSLIP_VERSION=v0.1.0 sh install.sh
 ```
 
 For native Windows, download your architecture's `.exe` and `checksums.txt`
-from [Releases](https://github.com/vincentsch/tollglass/releases). In PowerShell,
+from [Releases](https://github.com/vincentsch/tabslip/releases). In PowerShell,
 for an amd64 download in the current directory:
 
 ```powershell
-Get-FileHash -Algorithm SHA256 .\tollglass-windows-amd64.exe
-Get-Content .\checksums.txt | Select-String 'tollglass-windows-amd64.exe'
-.\tollglass-windows-amd64.exe --version
-.\tollglass-windows-amd64.exe demo
+Get-FileHash -Algorithm SHA256 .\tabslip-windows-amd64.exe
+Get-Content .\checksums.txt | Select-String 'tabslip-windows-amd64.exe'
+.\tabslip-windows-amd64.exe --version
+.\tabslip-windows-amd64.exe demo
 ```
 
 Compare the full hash before running the executable. Use the arm64 filename
@@ -42,18 +42,18 @@ With GitHub CLI installed, check the download's build provenance separately
 from the installer's checksum comparison:
 
 ```sh
-gh attestation verify tollglass-<os>-<arch> --repo vincentsch/tollglass
+gh attestation verify tabslip-<os>-<arch> --repo vincentsch/tabslip
 ```
 
 Replace `<os>` with `linux`, `darwin` or `windows`, and `<arch>` with `amd64`
-or `arm64`. Add `.exe` for Windows, for example `tollglass-windows-amd64.exe`.
+or `arm64`. Add `.exe` for Windows, for example `tabslip-windows-amd64.exe`.
 See [release checks](../RELEASE.md) for the publication and provenance procedure.
 
 Source installation needs the Go version in [go.mod](../go.mod).
 `GOTOOLCHAIN=auto` can download the toolchain:
 
 ```sh
-go install github.com/vincentsch/tollglass/cmd/tollglass@latest
+go install github.com/vincentsch/tabslip/cmd/tabslip@latest
 ```
 
 A source install reports `dev`. Go installs in `GOBIN` or `$(go env GOPATH)/bin`.
@@ -62,7 +62,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) to build from a checkout.
 ## Try it without a key
 
 ```sh
-tollglass demo
+tabslip demo
 ```
 
 Open the printed Page URL. The demo sends eight simulated calls and a signed
@@ -72,7 +72,7 @@ ready-to-run export and verify commands. Use its printed data directory for
 Ctrl+C removes this temporary directory. To keep the receipts instead:
 
 ```sh
-tollglass demo --data-dir ./demo-data
+tabslip demo --data-dir ./demo-data
 ```
 
 Each demo chooses a free port. For SDK checks, replace the preset URLs below
@@ -85,7 +85,7 @@ belong to `serve`; they do not select the demo upstream.
 After installing, start the gateway:
 
 ```sh
-tollglass serve
+tabslip serve
 ```
 
 Open `http://127.0.0.1:4545`. Calls updates live; click a call for its paper
@@ -142,8 +142,8 @@ console.log(response.content);
 ```
 
 Save the URL in your project's normal environment or SDK configuration.
-Tollglass forwards the client's credentials and does not retry provider calls.
-Restore the original URL before stopping Tollglass if the app must keep working.
+Tabslip forwards the client's credentials and does not retry provider calls.
+Restore the original URL before stopping Tabslip if the app must keep working.
 It must keep running, including after reboot; installation does not add a service.
 See [custom upstreams, Docker and remote pages through SSH](upstreams.md).
 

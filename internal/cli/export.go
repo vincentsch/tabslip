@@ -14,10 +14,10 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/keys"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/statement"
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/keys"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/statement"
+	"github.com/vincentsch/tabslip/internal/store"
 )
 
 const noContent = "No prompt or answer text is included."
@@ -88,7 +88,7 @@ func available(path string) error {
 
 // Publish complete files without exposing partial output or overwriting existing paths.
 func writeNew(path string, write func(io.Writer) error) error {
-	f, err := os.CreateTemp(filepath.Dir(path), ".tollglass-export-*")
+	f, err := os.CreateTemp(filepath.Dir(path), ".tabslip-export-*")
 	if err != nil {
 		return rungrad.NewError(2, "Cannot create output file. Check its directory and permissions.")
 	}
@@ -155,7 +155,7 @@ func exportCommand(dir *string) *rungrad.Command {
 		cmd.Flags().StringVar(&out, "out", "", "New output file (required)")
 		cmd.Flags().StringVar(&format, "format", "bundle", "bundle, jsonl, csv or html")
 	}
-	c.Examples = []string{"tollglass export --out calls.tollglass.json", "tollglass export --format html --tag acme-shop --out statement.html --dry-run"}
+	c.Examples = []string{"tabslip export --out calls.tabslip.json", "tabslip export --format html --tag acme-shop --out statement.html --dry-run"}
 	return c
 }
 
@@ -170,7 +170,7 @@ func csvValue[T any](v *T) string {
 func writeExport(w io.Writer, format string, calls []store.Call, summary exportSummary, public, keyID string) error {
 	switch format {
 	case "bundle":
-		b := receipt.Bundle{Type: "tollglass.bundle/v1", Created: receipt.Timestamp(time.Now()), PublicKey: public, KeyID: keyID, Range: summary.Range, Receipts: []json.RawMessage{}, Supplements: []json.RawMessage{}}
+		b := receipt.Bundle{Type: "tabslip.bundle/v1", Created: receipt.Timestamp(time.Now()), PublicKey: public, KeyID: keyID, Range: summary.Range, Receipts: []json.RawMessage{}, Supplements: []json.RawMessage{}}
 		for _, c := range calls {
 			b.Receipts = append(b.Receipts, c.Envelope)
 			b.Supplements = append(b.Supplements, c.SupplementEnvelopes...)

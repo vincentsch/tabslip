@@ -1,18 +1,18 @@
-# tollglass export
+# tabslip export
 
 Export content-free receipts and spending statements
 
 ## Usage
 
 ```
-tollglass export
+tabslip export
 ```
 
 ## Examples
 
 ```
-tollglass export --out calls.tollglass.json
-tollglass export --format html --tag acme-shop --out statement.html --dry-run
+tabslip export --out calls.tabslip.json
+tabslip export --format html --tag acme-shop --out statement.html --dry-run
 ```
 
 ## Flags
@@ -35,6 +35,6 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

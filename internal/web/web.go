@@ -26,16 +26,16 @@ import (
 
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/proxy"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/statement"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/proxy"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/statement"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
-const SetupPrompt = `Set up Tollglass for this project.
-Use https://github.com/vincentsch/tollglass: read its AGENTS.md and follow
+const SetupPrompt = `Set up Tabslip for this project.
+Use https://github.com/vincentsch/tabslip: read its AGENTS.md and follow
 the steps. Route this project's AI API calls through it, make one real call,
 and show me the receipt.`
 
@@ -195,7 +195,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.Header().Set("Content-Type", "application/x-pem-file")
-		w.Header().Set("Content-Disposition", `attachment; filename="tollglass.pub"`)
+		w.Header().Set("Content-Disposition", `attachment; filename="tabslip.pub"`)
 		w.Write(b)
 		return
 	}
@@ -347,7 +347,7 @@ func (s *Server) data(r *http.Request) (pageData, error) {
 	return d, err
 }
 func verify(c store.Call, pub ed25519.PublicKey) receipt.Verification {
-	return receipt.VerifyEnvelopes(receipt.Bundle{Type: "tollglass.bundle/v1", KeyID: receipt.KeyID(pub), Receipts: []json.RawMessage{c.Envelope}, Supplements: c.SupplementEnvelopes}, pub)
+	return receipt.VerifyEnvelopes(receipt.Bundle{Type: "tabslip.bundle/v1", KeyID: receipt.KeyID(pub), Receipts: []json.RawMessage{c.Envelope}, Supplements: c.SupplementEnvelopes}, pub)
 }
 func unique(a []string) []string {
 	out := []string{}

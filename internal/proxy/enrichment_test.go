@@ -16,11 +16,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/enrich"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/enrich"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 type injectedTransport func(*http.Request) (*http.Response, error)
@@ -82,7 +82,7 @@ func TestPresetOpenRouterEnrichmentDoesNotDelayClient(t *testing.T) {
 			}
 			gateway.Wait()
 			// The blocked generation lookup cannot prevent the receipt being usable.
-			read, err := sql.Open("sqlite", filepath.Join(dir, "tollglass.db"))
+			read, err := sql.Open("sqlite", filepath.Join(dir, "tabslip.db"))
 			if err != nil {
 				t.Fatal(err)
 			}

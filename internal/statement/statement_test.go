@@ -1,7 +1,7 @@
 package statement
 
 import (
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/store"
 	"strings"
 	"testing"
 )

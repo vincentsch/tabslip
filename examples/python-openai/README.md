@@ -10,7 +10,7 @@ python3 -m venv .venv
 
 ## Without a provider key
 
-Start `tollglass demo` in another terminal. Copy its printed OpenAI base URL
+Start `tabslip demo` in another terminal. Copy its printed OpenAI base URL
 when prompted below. The demo chooses a free port; use `/demo/v1`.
 
 ```sh
@@ -21,14 +21,14 @@ export OPENAI_API_KEY=demo
 .venv/bin/python example.py --tag example-check
 ```
 
-Copy the printed demo data directory to query `tollglass receipts --tag
+Copy the printed demo data directory to query `tabslip receipts --tag
 example-check --data-dir <directory> --json`, replacing `<directory>` with
 that path. A new tagged receipt confirms the call; the eight seeded calls do not.
 Use a fresh tag when repeating this check.
 
 ## With your provider
 
-Start `tollglass serve`. Use your project's existing key from its environment
+Start `tabslip serve`. Use your project's existing key from its environment
 or secret manager. These calls may cost money. Save the routing in your normal
 project configuration, for example by copying `.env.example` to `.env`, replacing
 the key placeholder and keeping it out of Git. The scripts do not load dotenv
@@ -46,5 +46,5 @@ model it supports with `OPENAI_MODEL`.
 For demo runs, the printed URL and synthetic key replace those live settings.
 
 On Windows use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
-Restore the original provider base URL before stopping Tollglass to keep live
+Restore the original provider base URL before stopping Tabslip to keep live
 calls working. For agent setup, use [the shared prompt](../../docs/setup-with-an-agent.md).

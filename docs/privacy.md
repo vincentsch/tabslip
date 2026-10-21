@@ -1,6 +1,6 @@
 # Storage and privacy
 
-Tollglass keeps records on your machine. By default these contain metadata
+Tabslip keeps records on your machine. By default these contain metadata
 and hashes, without prompt or answer text. There is no telemetry.
 
 ## What is stored
@@ -27,12 +27,12 @@ stored prompt or answer text. Content is readable only through the local page.
 
 | OS | Default config | Default data directory |
 | --- | --- | --- |
-| Linux | `$XDG_CONFIG_HOME/tollglass/config.yaml`, else `~/.config/tollglass/config.yaml` | `$XDG_DATA_HOME/tollglass`, else `~/.local/share/tollglass` |
-| macOS | `~/Library/Application Support/tollglass/config.yaml` | `~/Library/Application Support/tollglass` |
-| Windows | `%AppData%\tollglass\config.yaml` | `%LocalAppData%\tollglass` |
+| Linux | `$XDG_CONFIG_HOME/tabslip/config.yaml`, else `~/.config/tabslip/config.yaml` | `$XDG_DATA_HOME/tabslip`, else `~/.local/share/tabslip` |
+| macOS | `~/Library/Application Support/tabslip/config.yaml` | `~/Library/Application Support/tabslip` |
+| Windows | `%AppData%\tabslip\config.yaml` | `%LocalAppData%\tabslip` |
 
-Config selection is `--config`, then `TOLLGLASS_CONFIG`, then the OS default.
-`--data-dir` overrides the data location. The directory holds `tollglass.db`,
+Config selection is `--config`, then `TABSLIP_CONFIG`, then the OS default.
+`--data-dir` overrides the data location. The directory holds `tabslip.db`,
 SQLite WAL files while running, `key.ed25519`, `key.pub`, and optional price
 snapshots. Keep the private key and database together in backups. Read-only
 commands do not create state or apply retention.
@@ -54,7 +54,7 @@ the call; disable them with `enrich_openrouter: false`. Doctor sends key-free
 GETs to upstream roots, with five-second timeouts, and checks loopback health.
 Any HTTP answer establishes reachability, without validating credentials.
 
-`tollglass prices update` downloads LiteLLM's public price file explicitly.
+`tabslip prices update` downloads LiteLLM's public price file explicitly.
 Server startup and ordinary read commands do not download prices. The shell
 installer downloads binaries and checksums from GitHub. The page has no CDN,
 web fonts or external resource requests, and the demo makes no external requests.

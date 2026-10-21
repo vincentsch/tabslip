@@ -15,13 +15,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/demo"
-	"github.com/vincentsch/tollglass/internal/enrich"
-	"github.com/vincentsch/tollglass/internal/proxy"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/demo"
+	"github.com/vincentsch/tabslip/internal/enrich"
+	"github.com/vincentsch/tabslip/internal/proxy"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 func TestOfflineDemoMixAndLaterSDKModel(t *testing.T) {
@@ -67,7 +67,7 @@ func TestOfflineDemoMixAndLaterSDKModel(t *testing.T) {
 	if err = db.Close(); err != nil {
 		t.Fatal(err)
 	}
-	read, err := sql.Open("sqlite", filepath.Join(dir, "tollglass.db"))
+	read, err := sql.Open("sqlite", filepath.Join(dir, "tabslip.db"))
 	if err != nil {
 		t.Fatal(err)
 	}

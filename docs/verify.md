@@ -12,9 +12,9 @@ printed directory when using the demo. Quote paths with spaces, for example
 files; choose a new filename or move the earlier file first.
 
 ```sh
-tollglass export --data-dir ./instance-data --out calls.tollglass.json
-tollglass key --data-dir ./instance-data
-tollglass key export --data-dir ./instance-data --out tollglass.pub
+tabslip export --data-dir ./instance-data --out calls.tabslip.json
+tabslip key --data-dir ./instance-data
+tabslip key export --data-dir ./instance-data --out tabslip.pub
 ```
 
 Export previews the count, range, tags, models, upstreams and excluded content.
@@ -30,13 +30,13 @@ key id with the sender through a separate channel.
 
 ## Check the signer
 
-After confirming `tollglass.pub` independently:
+After confirming `tabslip.pub` independently:
 
 ```sh
-tollglass verify calls.tollglass.json --key tollglass.pub
+tabslip verify calls.tabslip.json --key tabslip.pub
 ```
 
-Alternatively use `--key-id` with the independently confirmed `tg_…` id.
+Alternatively use `--key-id` with the independently confirmed `ts_…` id.
 Replace the illustrative id rather than copying it literally. The key id is
 derived from the actual public key, not trusted from a label. For a bundle,
 the embedded public key supplies the bytes when only its id is confirmed.
@@ -48,11 +48,11 @@ A single receipt download is a DSSE envelope, not a bundle. It needs the
 public key bytes through `--key`, even when you know the key id:
 
 ```sh
-tollglass verify receipt.json --key tollglass.pub --json
+tabslip verify receipt.json --key tabslip.pub --json
 ```
 
 For example, download `receipt.json` from a receipt's local page, or save
-`tollglass show <receipt-id> --data-dir ./instance-data --json` to that file,
+`tabslip show <receipt-id> --data-dir ./instance-data --json` to that file,
 replacing `<receipt-id>` with a listed id. Single envelopes do not include supplements.
 
 ## The three answers
@@ -62,7 +62,7 @@ invalid records. Supplement digests must bind to a receipt in the bundle;
 changed payloads, wrong keys and inconsistent signer labels are invalid.
 The signer result says whether an independently selected or existing matching
 local key confirms the signer. The claims answer says model names, token
-counts and provider cost come from the provider; Tollglass did not check the model itself.
+counts and provider cost come from the provider; Tabslip did not check the model itself.
 
 | Exit | Meaning |
 | --- | --- |
@@ -74,7 +74,7 @@ counts and provider cost come from the provider; Tollglass did not check the mod
 | 5 | File not found |
 
 JSON provides the same three answers and individual envelope results.
-A signature shows the record has not changed since your Tollglass signed it.
+A signature shows the record has not changed since your Tabslip signed it.
 It does not show the provider told the truth or stop the key owner inventing a record.
 
 ## Other export formats

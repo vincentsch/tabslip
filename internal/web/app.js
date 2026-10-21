@@ -1,14 +1,14 @@
 (() => {
  'use strict';
  const root=document.documentElement;
- try {const saved=localStorage.getItem('tollglass-theme');if(saved)root.dataset.theme=saved;}catch{}
+ try {const saved=localStorage.getItem('tabslip-theme');if(saved)root.dataset.theme=saved;}catch{}
  const page=document.body.dataset.page;
  const content=document.querySelector('#content-state');
  function contentStyle(){content.classList.toggle('stored',content.textContent!=='Content: not stored');}
  contentStyle();
  document.querySelector('#theme').addEventListener('click',()=>{
   const dark=root.dataset.theme ? root.dataset.theme==='dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-  root.dataset.theme=dark?'light':'dark';try{localStorage.setItem('tollglass-theme',root.dataset.theme);}catch{}
+  root.dataset.theme=dark?'light':'dark';try{localStorage.setItem('tabslip-theme',root.dataset.theme);}catch{}
  });
 
  document.addEventListener('click',async e=>{

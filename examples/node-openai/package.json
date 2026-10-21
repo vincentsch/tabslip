@@ -1,5 +1,5 @@
 {
-  "name": "tollglass-openai-example",
+  "name": "tabslip-openai-example",
   "private": true,
   "type": "module",
   "engines": {"node": ">=22"},

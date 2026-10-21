@@ -26,11 +26,11 @@ func TestVerificationChecksSignedTypesLabelsAndReferences(t *testing.T) {
 	key := ed25519.NewKeyFromSeed(make([]byte, 32))
 	pub := key.Public().(ed25519.PublicKey)
 	id := KeyID(pub)
-	r := Receipt{Type: "tollglass.receipt/v1", ID: "rcpt_example", Instance: Instance{KeyID: id}}
+	r := Receipt{Type: "tabslip.receipt/v1", ID: "rcpt_example", Instance: Instance{KeyID: id}}
 	p, _ := json.Marshal(r)
-	s := Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: Digest(p)}
+	s := Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: Digest(p)}
 	makeBundle := func() Bundle {
-		return Bundle{Type: "tollglass.bundle/v1", KeyID: id, Receipts: []json.RawMessage{seal(t, PayloadType, r, key)}, Supplements: []json.RawMessage{seal(t, SupplementPayloadType, s, key)}}
+		return Bundle{Type: "tabslip.bundle/v1", KeyID: id, Receipts: []json.RawMessage{seal(t, PayloadType, r, key)}, Supplements: []json.RawMessage{seal(t, SupplementPayloadType, s, key)}}
 	}
 	if v := VerifyEnvelopes(makeBundle(), pub); !v.SignaturesValid {
 		t.Fatal(v)
@@ -40,7 +40,7 @@ func TestVerificationChecksSignedTypesLabelsAndReferences(t *testing.T) {
 		alter func(*Bundle)
 	}{{"signed wrong receipt type", func(b *Bundle) { bad := r; bad.Type = "wrong"; b.Receipts[0] = seal(t, PayloadType, bad, key) }}, {"signed wrong receipt key label", func(b *Bundle) {
 		bad := r
-		bad.Instance.KeyID = "tg_wrong"
+		bad.Instance.KeyID = "ts_wrong"
 		b.Receipts[0] = seal(t, PayloadType, bad, key)
 	}}, {"signed wrong digest", func(b *Bundle) {
 		bad := s
@@ -54,7 +54,7 @@ func TestVerificationChecksSignedTypesLabelsAndReferences(t *testing.T) {
 		bad := s
 		bad.ReceiptID = "absent"
 		b.Supplements[0] = seal(t, SupplementPayloadType, bad, key)
-	}}, {"wrong bundle label", func(b *Bundle) { b.KeyID = "tg_wrong" }}} {
+	}}, {"wrong bundle label", func(b *Bundle) { b.KeyID = "ts_wrong" }}} {
 		t.Run(tc.name, func(t *testing.T) {
 			b := makeBundle()
 			tc.alter(&b)
@@ -67,7 +67,7 @@ func TestVerificationChecksSignedTypesLabelsAndReferences(t *testing.T) {
 
 func TestBundleKeepsExactEnvelopeBytes(t *testing.T) {
 	raw := json.RawMessage("{\n  \"payloadType\": \"sample\", \"payload\":\"YWJj\", \"signatures\": []\n}")
-	b := Bundle{Type: "tollglass.bundle/v1", Receipts: []json.RawMessage{raw}, Supplements: []json.RawMessage{raw}}
+	b := Bundle{Type: "tabslip.bundle/v1", Receipts: []json.RawMessage{raw}, Supplements: []json.RawMessage{raw}}
 	var output bytes.Buffer
 	if err := WriteBundle(&output, b); err != nil {
 		t.Fatal(err)

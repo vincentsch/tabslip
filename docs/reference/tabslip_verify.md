@@ -1,18 +1,18 @@
-# tollglass verify
+# tabslip verify
 
 Check signatures and signer identity offline
 
 ## Usage
 
 ```
-tollglass verify <file>
+tabslip verify <file>
 ```
 
 ## Examples
 
 ```
-tollglass verify calls.tollglass.json --key tollglass.pub
-tollglass verify calls.tollglass.json --key-id tg_6f1c2a9b04d3e871 --json
+tabslip verify calls.tabslip.json --key tabslip.pub
+tabslip verify calls.tabslip.json --key-id ts_6f1c2a9b04d3e871 --json
 ```
 
 ## Flags
@@ -26,6 +26,6 @@ human, json
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

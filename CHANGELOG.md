@@ -1,6 +1,6 @@
 ## Unreleased
 
-First release of Tollglass.
+First release of Tabslip.
 
 - Forward OpenAI, Anthropic, OpenRouter and Ollama API calls through a local gateway.
 - Keep signed receipts for chat, Responses, embeddings and Messages, including streams.

@@ -1,18 +1,18 @@
-# tollglass key
+# tabslip key
 
 Show the existing instance public key
 
 ## Usage
 
 ```
-tollglass key
+tabslip key
 ```
 
 ## Examples
 
 ```
-tollglass key
-tollglass key --json
+tabslip key
+tabslip key --json
 ```
 
 ## Output modes
@@ -21,6 +21,6 @@ human, json
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

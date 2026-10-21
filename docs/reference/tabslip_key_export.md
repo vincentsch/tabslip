@@ -1,18 +1,18 @@
-# tollglass key export
+# tabslip key export
 
 Export the existing PEM public key
 
 ## Usage
 
 ```
-tollglass key export
+tabslip key export
 ```
 
 ## Examples
 
 ```
-tollglass key export --out tollglass.pub
-tollglass key export --out tollglass.pub --dry-run
+tabslip key export --out tabslip.pub
+tabslip key export --out tabslip.pub --dry-run
 ```
 
 ## Flags
@@ -29,6 +29,6 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 type Reader struct{ db *sql.DB }
 
 // OpenReader never initializes local state or applies retention.
 func OpenReader(dir string) (*Reader, error) {
-	path, err := filepath.Abs(filepath.Join(dir, "tollglass.db"))
+	path, err := filepath.Abs(filepath.Join(dir, "tabslip.db"))
 	if err != nil {
 		return nil, fmt.Errorf("cannot resolve data directory")
 	}
@@ -37,7 +37,7 @@ func OpenReader(dir string) (*Reader, error) {
 	var schema string
 	if err = db.QueryRow("SELECT value FROM meta WHERE name='schema_version'").Scan(&schema); err != nil || schema != "1" {
 		db.Close()
-		return nil, fmt.Errorf("cannot read database schema; use a compatible Tollglass version")
+		return nil, fmt.Errorf("cannot read database schema; use a compatible Tabslip version")
 	}
 	return &Reader{db}, nil
 }

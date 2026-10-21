@@ -1,19 +1,19 @@
-# tollglass serve
+# tabslip serve
 
 Start the local AI gateway
 
 ## Usage
 
 ```
-tollglass serve
+tabslip serve
 ```
 
 ## Examples
 
 ```
-tollglass serve
-tollglass serve --port 4546
-tollglass serve --dry-run --json
+tabslip serve
+tabslip serve --port 4546
+tabslip serve --dry-run --json
 ```
 
 ## Output modes
@@ -26,4 +26,4 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass --help
+- tabslip --help

@@ -1,18 +1,18 @@
-# tollglass prices update
+# tabslip prices update
 
 Download and install a LiteLLM price snapshot
 
 ## Usage
 
 ```
-tollglass prices update
+tabslip prices update
 ```
 
 ## Examples
 
 ```
-tollglass prices update
-tollglass prices update --dry-run --json
+tabslip prices update
+tabslip prices update --dry-run --json
 ```
 
 ## Output modes
@@ -25,6 +25,6 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass receipts
-- tollglass export
-- tollglass verify
+- tabslip receipts
+- tabslip export
+- tabslip verify

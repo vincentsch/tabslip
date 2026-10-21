@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/vincentsch/tollglass/internal/cli"
+	"github.com/vincentsch/tabslip/internal/cli"
 	"os"
 )
 

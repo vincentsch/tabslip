@@ -1,6 +1,6 @@
 package apis
 
-import "github.com/vincentsch/tollglass/internal/prices"
+import "github.com/vincentsch/tabslip/internal/prices"
 
 func (c *Capture) chat(v map[string]any, stream bool) {
 	r := c.Receipt

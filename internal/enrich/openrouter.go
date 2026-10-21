@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/prices"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/prices"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 type Lookup func(context.Context, string, string) (*receipt.Supplement, error)
@@ -40,7 +40,7 @@ func (w *Worker) Schedule(r *receipt.Receipt, authorization string) {
 		if err != nil || s == nil {
 			return
 		}
-		s.Type, s.ReceiptID, s.ReceiptSHA256 = "tollglass.supplement/v1", id, digest
+		s.Type, s.ReceiptID, s.ReceiptSHA256 = "tabslip.supplement/v1", id, digest
 		s.Fetched, s.Currency = receipt.Timestamp(time.Now()), "USD"
 		w.Save(s)
 	}()

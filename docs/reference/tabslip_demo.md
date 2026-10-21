@@ -1,19 +1,19 @@
-# tollglass demo
+# tabslip demo
 
 Try eight simulated AI calls offline
 
 ## Usage
 
 ```
-tollglass demo
+tabslip demo
 ```
 
 ## Examples
 
 ```
-tollglass demo
-tollglass demo --data-dir ./demo-data --json
-tollglass demo --dry-run
+tabslip demo
+tabslip demo --data-dir ./demo-data --json
+tabslip demo --dry-run
 ```
 
 ## Output modes
@@ -26,4 +26,4 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass serve
+- tabslip serve

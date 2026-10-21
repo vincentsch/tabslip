@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/apis"
-	"github.com/vincentsch/tollglass/internal/prices"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/apis"
+	"github.com/vincentsch/tabslip/internal/prices"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func ptr[T any](v T) *T { return &v }

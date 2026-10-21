@@ -13,7 +13,7 @@ case "$tag" in v[0-9]*.[0-9]*.[0-9]*) ;;
 esac
 case "$tag" in */*) echo 'Release tag must not contain slashes' >&2; exit 1 ;; esac
 # Validate inputs before touching either layout.
-assets='tollglass-linux-amd64 tollglass-linux-arm64 tollglass-darwin-amd64 tollglass-darwin-arm64 tollglass-windows-amd64.exe tollglass-windows-arm64.exe checksums.txt'
+assets='tabslip-linux-amd64 tabslip-linux-arm64 tabslip-darwin-amd64 tabslip-darwin-arm64 tabslip-windows-amd64.exe tabslip-windows-arm64.exe checksums.txt'
 for asset in $assets; do
     [ -f "$dist/$asset" ] || { echo "Missing release file: $asset" >&2; exit 1; }
 done

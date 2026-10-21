@@ -8,7 +8,7 @@ from openai import OpenAI
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--tag", help="Send X-Tollglass-Tag for this request only")
+    parser.add_argument("--tag", help="Send X-Tabslip-Tag for this request only")
     args = parser.parse_args()
     client = OpenAI(
         api_key=os.environ["OPENAI_API_KEY"],
@@ -19,7 +19,7 @@ def main():
         model=os.environ.get("OPENAI_MODEL", "gpt-4.1"),
         messages=[{"role": "user", "content": "Say hello in one short sentence."}],
         max_completion_tokens=64,
-        extra_headers={"X-Tollglass-Tag": args.tag} if args.tag else {},
+        extra_headers={"X-Tabslip-Tag": args.tag} if args.tag else {},
     )
     print(response.choices[0].message.content)
 

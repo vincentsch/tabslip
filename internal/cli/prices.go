@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/prices"
+	"github.com/vincentsch/tabslip/internal/prices"
 )
 
 func pricesCommand(dir *string) *rungrad.Command {
@@ -21,7 +21,7 @@ func pricesCommand(dir *string) *rungrad.Command {
 			fmt.Fprintf(w, "%s prices: %s\nDate: %s\nSHA-256: %s\n", info.Source, info.Version, info.Date, info.SHA256)
 		})
 	})
-	c.Examples = []string{"tollglass prices", "tollglass prices --json"}
+	c.Examples = []string{"tabslip prices", "tabslip prices --json"}
 	u := command("update", "Download and install a LiteLLM price snapshot", func(f *rungrad.Factory, _ *cobra.Command, _ []string) error {
 		if f.Flags.DryRun {
 			return f.WriteResult(map[string]any{"dry_run": true, "source": prices.SourceURL}, func(w io.Writer) {
@@ -45,12 +45,12 @@ func pricesCommand(dir *string) *rungrad.Command {
 		return f.WriteResult(struct {
 			prices.Info
 			Notice string `json:"notice"`
-		}{info, "Restart a running Tollglass to use this snapshot. Already signed costs never change."}, func(w io.Writer) {
-			fmt.Fprintf(w, "Installed %s\nRestart a running Tollglass to use this snapshot. Already signed costs never change.\n", name)
+		}{info, "Restart a running Tabslip to use this snapshot. Already signed costs never change."}, func(w io.Writer) {
+			fmt.Fprintf(w, "Installed %s\nRestart a running Tabslip to use this snapshot. Already signed costs never change.\n", name)
 		})
 	})
 	u.Mutates = true
-	u.Examples = []string{"tollglass prices update", "tollglass prices update --dry-run --json"}
+	u.Examples = []string{"tabslip prices update", "tabslip prices update --dry-run --json"}
 	c.AddCommand(u)
 	return c
 }

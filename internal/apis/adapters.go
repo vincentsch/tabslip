@@ -3,7 +3,7 @@ package apis
 import (
 	"encoding/json"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 // Endpoint selects metadata extraction without changing forwarding behavior.

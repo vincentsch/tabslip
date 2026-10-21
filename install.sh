@@ -1,8 +1,8 @@
 #!/bin/sh
-# Usage: curl -fsSL https://raw.githubusercontent.com/vincentsch/tollglass/main/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
 set -eu
 
-fail() { printf '%s\n' "Tollglass: $*" >&2; exit 1; }
+fail() { printf '%s\n' "Tabslip: $*" >&2; exit 1; }
 work=
 staged=
 cleanup() {
@@ -26,12 +26,12 @@ case "$arch" in
     aarch64|arm64|ARM64) arch=arm64 ;;
     *) fail "Unsupported architecture: $arch (need amd64 or arm64)" ;;
 esac
-asset=tollglass-$os-$arch
-binary=tollglass
+asset=tabslip-$os-$arch
+binary=tabslip
 if [ "$os" = windows ]; then asset=$asset.exe; binary=$binary.exe; fi
-base=${TOLLGLASS_DOWNLOAD_BASE:-https://github.com/vincentsch/tollglass}
-if [ -n "${TOLLGLASS_VERSION:-}" ]; then
-    url=${base%/}/releases/download/$TOLLGLASS_VERSION
+base=${TABSLIP_DOWNLOAD_BASE:-https://github.com/vincentsch/tabslip}
+if [ -n "${TABSLIP_VERSION:-}" ]; then
+    url=${base%/}/releases/download/$TABSLIP_VERSION
 else
     url=${base%/}/releases/latest/download
 fi
@@ -56,12 +56,12 @@ actual=${digest%% *}
 install_dir=${INSTALL_DIR:-$HOME/.local/bin}
 mkdir -p "$install_dir" || fail 'Cannot create installation directory; choose a writable INSTALL_DIR'
 # Stage beside the destination so replacement is a rename on the same filesystem.
-staged=$(mktemp "$install_dir/.tollglass.XXXXXX") || fail 'Cannot write to installation directory'
+staged=$(mktemp "$install_dir/.tabslip.XXXXXX") || fail 'Cannot write to installation directory'
 cp "$work/$asset" "$staged" || fail 'Cannot stage executable'
 chmod 755 "$staged" || fail 'Cannot make downloaded binary executable'
-mv -f "$staged" "$install_dir/$binary" || fail 'Cannot replace installed executable (stop Tollglass if it is running)'
+mv -f "$staged" "$install_dir/$binary" || fail 'Cannot replace installed executable (stop Tabslip if it is running)'
 staged=
-printf 'Installed %s.\nNext: tollglass demo\n' "$binary"
+printf 'Installed %s.\nNext: tabslip demo\n' "$binary"
 case ":${PATH:-}:" in
     *":$install_dir:"*) ;;
     *) printf 'Add the installation directory to PATH:\n  export PATH="%s:$PATH"\n' "$install_dir" ;;

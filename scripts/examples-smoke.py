@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     binary = str(Path(args.binary).resolve())
     root = Path(args.source).resolve()
-    with tempfile.TemporaryDirectory(prefix='tollglass-examples-') as data:
+    with tempfile.TemporaryDirectory(prefix='tabslip-examples-') as data:
         process = subprocess.Popen([binary, 'demo', '--data-dir', data, '--json'],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:
@@ -54,7 +54,7 @@ def main():
                 if name.startswith('python-'):
                     command += ['--tag', tag]
                 run = subprocess.run(command, cwd=root / 'examples' / name,
-                                     env=dict(base, TOLLGLASS_TAG=tag), text=True,
+                                     env=dict(base, TABSLIP_TAG=tag), text=True,
                                      capture_output=True, timeout=30, check=True)
                 assert run.stdout.strip(), name
                 rows = []

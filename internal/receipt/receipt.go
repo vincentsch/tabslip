@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"github.com/oklog/ulid/v2"
-	"github.com/vincentsch/tollglass/internal/version"
+	"github.com/vincentsch/tabslip/internal/version"
 )
 
-const PayloadType = "application/vnd.tollglass.receipt+json"
+const PayloadType = "application/vnd.tabslip.receipt+json"
 
 type Finding struct {
 	Code  string `json:"code"`
@@ -22,7 +22,7 @@ type Finding struct {
 }
 type Instance struct {
 	KeyID     string `json:"key_id"`
-	Tollglass string `json:"tollglass"`
+	Tabslip string `json:"tabslip"`
 }
 type Timing struct {
 	Started   string  `json:"started"`
@@ -91,7 +91,7 @@ type Receipt struct {
 
 func Timestamp(t time.Time) string { return t.UTC().Format("2006-01-02T15:04:05.000Z") }
 func New(keyID string, started time.Time) *Receipt {
-	return &Receipt{Type: "tollglass.receipt/v1", ID: "rcpt_" + ulid.Make().String(), Instance: Instance{keyID, version.Version}, Time: Timing{Started: Timestamp(started)}, Request: Request{Params: map[string]any{}, Modifications: []string{}}, Usage: Usage{Source: "unknown"}, Cost: Cost{Source: "unknown"}, Findings: []Finding{}}
+	return &Receipt{Type: "tabslip.receipt/v1", ID: "rcpt_" + ulid.Make().String(), Instance: Instance{keyID, version.Version}, Time: Timing{Started: Timestamp(started)}, Request: Request{Params: map[string]any{}, Modifications: []string{}}, Usage: Usage{Source: "unknown"}, Cost: Cost{Source: "unknown"}, Findings: []Finding{}}
 }
 func (r *Receipt) Find(code, level, text string) {
 	for _, f := range r.Findings {
@@ -111,7 +111,7 @@ func (r *Receipt) HasFindings() bool {
 }
 func KeyID(pub ed25519.PublicKey) string {
 	s := sha256.Sum256(pub)
-	return "tg_" + hex.EncodeToString(s[:8])
+	return "ts_" + hex.EncodeToString(s[:8])
 }
 
 type Signature struct {

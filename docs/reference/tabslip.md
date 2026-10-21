@@ -1,19 +1,19 @@
-# tollglass
+# tabslip
 
 Keep signed receipts for AI API calls
 
 ## Usage
 
 ```
-tollglass
+tabslip
 ```
 
 ## Examples
 
 ```
-  tollglass
-  tollglass --port 4546
-  tollglass --dry-run --json
+  tabslip
+  tabslip --port 4546
+  tabslip --dry-run --json
 ```
 
 ## Output modes
@@ -26,4 +26,4 @@ This command changes state and honors `--dry-run`.
 
 ## Related commands
 
-- tollglass --help
+- tabslip --help

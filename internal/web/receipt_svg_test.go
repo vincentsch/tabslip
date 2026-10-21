@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func TestReceiptStampClearance(t *testing.T) {
@@ -119,7 +119,7 @@ func TestReceiptStampClearance(t *testing.T) {
 			if doc.Stamp.Texts[0].Text != stamp || doc.Stamp.Texts[1].Text != c.Receipt.Instance.KeyID {
 				t.Fatal("stamp content changed")
 			}
-			expected := strings.Join(bodyText, "\n") + "\n" + stamp + " by your Tollglass " + c.Receipt.Instance.KeyID + "\nModel and token values are reported by the provider."
+			expected := strings.Join(bodyText, "\n") + "\n" + stamp + " by your Tabslip " + c.Receipt.Instance.KeyID + "\nModel and token values are reported by the provider."
 			if accessible != expected {
 				t.Fatal("accessible text content or order differs")
 			}

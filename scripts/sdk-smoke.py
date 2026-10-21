@@ -2,7 +2,7 @@
 """Check installed OpenAI and Anthropic SDKs against a local fake through the built gateway.
 
 Run with a temporary Python environment containing openai, anthropic and cryptography. Pass paths to
-the openai and @anthropic-ai/sdk Node modules and the built Tollglass binary. No provider calls occur.
+the openai and @anthropic-ai/sdk Node modules and the built Tabslip binary. No provider calls occur.
 """
 import argparse
 import base64
@@ -79,7 +79,7 @@ def main():
     thread = threading.Thread(target=fake.serve_forever, daemon=True)
     thread.start()
     try:
-        with tempfile.TemporaryDirectory(prefix="tollglass-smoke-") as tmp:
+        with tempfile.TemporaryDirectory(prefix="tabslip-smoke-") as tmp:
             tmp = pathlib.Path(tmp)
             port = free_port()
             closed_port = free_port()
@@ -106,7 +106,7 @@ def main():
                 else:
                     raise AssertionError("gateway did not start")
                 startup_ms = round((time.monotonic() - startup_start) * 1000)
-                assert health["tool"] == "tollglass" and health["unrecorded_calls"] == 0
+                assert health["tool"] == "tabslip" and health["unrecorded_calls"] == 0
                 try:
                     import httpx2 as httpx
                 except ImportError:
@@ -190,7 +190,7 @@ const client = new Anthropic({apiKey:'synthetic-sdk-credential',baseURL:process.
                 startup = json.loads(stdout)
                 assert startup["key_id"] == health["key_id"] and startup["base_urls"]["local-test"] == base + "/local-test/v1"
                 assert "synthetic-sdk-credential" not in stdout + stderr
-                db = sqlite3.connect(tmp / "data" / "tollglass.db")
+                db = sqlite3.connect(tmp / "data" / "tabslip.db")
                 envelopes = db.execute("select envelope from receipts order by started_at, rowid").fetchall()
                 assert len(envelopes) == 12, "shutdown did not drain all receipts"
                 public_key = load_pem_public_key((tmp / "data" / "key.pub").read_bytes())
@@ -225,7 +225,7 @@ const client = new Anthropic({apiKey:'synthetic-sdk-credential',baseURL:process.
                         assert any(f["code"] == "transport_error" for f in receipt["findings"])
                 assert db.execute("select count(*) from contents").fetchone()[0] == 0
                 db.close()
-                assert b"synthetic-sdk-credential" not in (tmp / "data" / "tollglass.db").read_bytes()
+                assert b"synthetic-sdk-credential" not in (tmp / "data" / "tabslip.db").read_bytes()
                 # Exercise the default root action, human startup and Ctrl+C separately.
                 second = subprocess.Popen([binary, "--config", str(cfg), "--data-dir", str(tmp / "data")], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
                 try:
@@ -237,7 +237,7 @@ const client = new Anthropic({apiKey:'synthetic-sdk-credential',baseURL:process.
                             time.sleep(0.01)
                     second.send_signal(signal.SIGINT)
                     human, error = second.communicate(timeout=10)
-                    assert second.returncode == 0 and "Tollglass is running." in human
+                    assert second.returncode == 0 and "Tabslip is running." in human
                     assert "Content is not stored" in human
                 finally:
                     if second.poll() is None:

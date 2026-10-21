@@ -20,7 +20,7 @@ func TestDryRunConfigPrecedenceAndUsage(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")
 	os.WriteFile(path, []byte("port: 4598\nkeep_content: true\n"), 0600)
-	t.Setenv("TOLLGLASS_CONFIG", path)
+	t.Setenv("TABSLIP_CONFIG", path)
 	data := filepath.Join(dir, "data")
 	for _, args := range [][]string{{"--dry-run", "--json", "--data-dir", data}, {"serve", "--dry-run", "--json", "--data-dir", data}} {
 		r := testutil.Run(NewApp(), args...)
@@ -45,9 +45,9 @@ func TestDryRunConfigPrecedenceAndUsage(t *testing.T) {
 	if r.Exit != 0 || !strings.Contains(r.Stdout, "4545") {
 		t.Fatal("explicit config precedence")
 	}
-	t.Setenv("TOLLGLASS_CONFIG", "")
-	os.MkdirAll(filepath.Join(dir, "tollglass"), 0700)
-	os.WriteFile(filepath.Join(dir, "tollglass", "config.yaml"), []byte("port: 4597"), 0600)
+	t.Setenv("TABSLIP_CONFIG", "")
+	os.MkdirAll(filepath.Join(dir, "tabslip"), 0700)
+	os.WriteFile(filepath.Join(dir, "tabslip", "config.yaml"), []byte("port: 4597"), 0600)
 	r = testutil.RunWith(NewApp(), testutil.Options{
 		UserConfigDir: func() (string, error) { return dir, nil },
 	}, "--dry-run", "--json")
@@ -80,19 +80,19 @@ func TestBusyPort(t *testing.T) {
 		t.Fatalf("busy port: %+v", r)
 	}
 	fake := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]any{"tool": "tollglass"})
+		json.NewEncoder(w).Encode(map[string]any{"tool": "tabslip"})
 	}))
 	defer fake.Close()
 	_, port, _ := net.SplitHostPort(strings.TrimPrefix(fake.URL, "http://"))
 	n, _ := strconv.Atoi(port)
 	if !strings.Contains(busyMessage(n), "already running at "+fake.URL) {
-		t.Fatal("existing Tollglass not identified")
+		t.Fatal("existing Tabslip not identified")
 	}
 }
 func TestHelpAndManifest(t *testing.T) {
 	for _, args := range [][]string{{"--help"}, {"serve", "--help"}, {"__rungrad_manifest"}} {
 		r := testutil.Run(NewApp(), args...)
-		if r.Exit != 0 || !strings.Contains(r.Stdout, "tollglass") {
+		if r.Exit != 0 || !strings.Contains(r.Stdout, "tabslip") {
 			t.Fatalf("help/manifest: %+v", r)
 		}
 	}
@@ -142,7 +142,7 @@ func TestDemoDryRunIgnoresNormalConfigAndCreatesNothing(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "broken.yaml")
 	os.WriteFile(path, []byte("port: [broken"), 0600)
-	t.Setenv("TOLLGLASS_CONFIG", path)
+	t.Setenv("TABSLIP_CONFIG", path)
 	data := filepath.Join(dir, "demo-data")
 	r := testutil.Run(NewApp(), "demo", "--dry-run", "--json", "--data-dir", data)
 	if r.Exit != 0 || !strings.Contains(r.Stdout, "eight simulated calls") {

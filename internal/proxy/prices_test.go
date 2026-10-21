@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/prices"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/prices"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 func TestGatewayKeepsStartupPricesUntilRestart(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGatewayKeepsStartupPricesUntilRestart(t *testing.T) {
 	}
 	us, _ := upstream.Build(nil)
 	records := &recorder{make(chan captured, 3)}
-	g := &Gateway{Upstreams: us, Config: config.Default(), KeyID: "tg_test", Store: records, Prices: &table, Transport: injectedTransport(func(r *http.Request) (*http.Response, error) {
+	g := &Gateway{Upstreams: us, Config: config.Default(), KeyID: "ts_test", Store: records, Prices: &table, Transport: injectedTransport(func(r *http.Request) (*http.Response, error) {
 		return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(`{"model":"test-model","choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1}}`))}, nil
 	})}
 	call := func(want string) {

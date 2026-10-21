@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/receipt"
 	"testing"
 	"time"
 )
@@ -108,7 +108,7 @@ func supplementedReader(tb testing.TB, count, perCall int) *Reader {
 		}
 		for j := 0; j < perCall; j++ {
 			cost := "0.01"
-			supp := receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(payload), Cost: &cost, Currency: "USD", Fetched: fmt.Sprint(j)}
+			supp := receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(payload), Cost: &cost, Currency: "USD", Fetched: fmt.Sprint(j)}
 			raw, e := receipt.SignSupplement(&supp, writer.Key)
 			if e != nil {
 				tb.Fatal(e)
@@ -249,7 +249,7 @@ func TestKeysetOrdersCombinedSearchAndActiveFindings(t *testing.T) {
 	s.Flush()
 	c := "0.5"
 	p, _ := json.Marshal(r)
-	supp := &receipt.Supplement{Type: "tollglass.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Cost: &c, Currency: "USD"}
+	supp := &receipt.Supplement{Type: "tabslip.supplement/v1", ReceiptID: r.ID, ReceiptSHA256: receipt.Digest(p), Cost: &c, Currency: "USD"}
 	s.SaveSupplement(supp)
 	s.Flush()
 	active, err := s.Reader().Calls(Filter{Model: "Requested", FindingsOnly: true})

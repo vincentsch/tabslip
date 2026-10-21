@@ -21,21 +21,21 @@ import (
 	"github.com/vincentsch/rungrad"
 	rgconfig "github.com/vincentsch/rungrad/config"
 	"github.com/vincentsch/rungrad/output"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/enrich"
-	"github.com/vincentsch/tollglass/internal/prices"
-	"github.com/vincentsch/tollglass/internal/proxy"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
-	"github.com/vincentsch/tollglass/internal/version"
-	"github.com/vincentsch/tollglass/internal/web"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/enrich"
+	"github.com/vincentsch/tabslip/internal/prices"
+	"github.com/vincentsch/tabslip/internal/proxy"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/version"
+	"github.com/vincentsch/tabslip/internal/web"
 )
 
 func NewApp() *rungrad.App {
 	app := rungrad.New(rungrad.AppConfig{
-		Name:           "tollglass",
+		Name:           "tabslip",
 		Short:          "Keep signed receipts for AI API calls",
-		Long:           "Forward AI API calls and keep receipts signed by your Tollglass. Model names and usage come from the provider.",
+		Long:           "Forward AI API calls and keep receipts signed by your Tabslip. Model names and usage come from the provider.",
 		Version:        version.String(),
 		AdvancedOutput: true,
 		ErrorPolicy: &rungrad.ErrorPolicy{Classify: func(c rungrad.ErrorContext) int {
@@ -61,8 +61,8 @@ func NewApp() *rungrad.App {
 			return err
 		}},
 		Resolution: &rungrad.ResolutionConfig{
-			ConfigEnvVar: "TOLLGLASS_CONFIG",
-			// rungrad resolves the path; Tollglass owns the YAML settings.
+			ConfigEnvVar: "TABSLIP_CONFIG",
+			// rungrad resolves the path; Tabslip owns the YAML settings.
 			LoadConfig: func(string) (rgconfig.Config, error) { return rgconfig.Config{}, nil },
 		},
 	})
@@ -79,8 +79,8 @@ func NewApp() *rungrad.App {
 		Use:         "serve",
 		Short:       "Start the local AI gateway",
 		Long:        "Forward API calls and store signed receipts with usage and cost. Stop with Ctrl+C or SIGTERM. Content is off by default.",
-		Examples:    []string{"tollglass serve", "tollglass serve --port 4546", "tollglass serve --dry-run --json"},
-		Related:     []string{"tollglass --help"},
+		Examples:    []string{"tabslip serve", "tabslip serve --port 4546", "tabslip serve --dry-run --json"},
+		Related:     []string{"tabslip --help"},
 		Args:        cobra.NoArgs,
 		Mutates:     true,
 		OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON},
@@ -117,7 +117,7 @@ func NewApp() *rungrad.App {
 			root.RunE = cmd.RunE
 			root.Args = cobra.NoArgs
 			root.Annotations = cmd.Annotations
-			root.Example = "  tollglass\n  tollglass --port 4546\n  tollglass --dry-run --json"
+			root.Example = "  tabslip\n  tabslip --port 4546\n  tabslip --dry-run --json"
 		}
 	}
 	return app
@@ -177,7 +177,7 @@ func serve(f *rungrad.Factory, c config.Config, dataDir string, locked, openPage
 		urls[name] = u
 	}
 	if err = f.WriteResult(map[string]any{"page_url": page, "base_urls": urls, "key_id": db.KeyID, "data_dir": dataDir}, func(w io.Writer) {
-		fmt.Fprint(w, "Tollglass is running.\n\n")
+		fmt.Fprint(w, "Tabslip is running.\n\n")
 		fmt.Fprintf(w, "  Page        %s\n", page)
 		labels := map[string]string{"openai": "OpenAI", "anthropic": "Anthropic", "openrouter": "OpenRouter", "ollama": "Ollama"}
 		for _, n := range []string{"openai", "anthropic", "openrouter", "ollama"} {
@@ -244,11 +244,11 @@ func busyMessage(port int) string {
 		var h struct {
 			Tool string `json:"tool"`
 		}
-		if json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&h) == nil && h.Tool == "tollglass" {
-			return "Tollglass is already running at " + endpoint + "."
+		if json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&h) == nil && h.Tool == "tabslip" {
+			return "Tabslip is already running at " + endpoint + "."
 		}
 	}
-	return fmt.Sprintf("Port %d is in use by another program. Start Tollglass with `--port %d`, or stop the other program.", port, nextPort(port))
+	return fmt.Sprintf("Port %d is in use by another program. Start Tabslip with `--port %d`, or stop the other program.", port, nextPort(port))
 }
 
 func nextPort(port int) int {

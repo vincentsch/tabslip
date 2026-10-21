@@ -12,8 +12,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/keys"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/keys"
+	"github.com/vincentsch/tabslip/internal/receipt"
 	_ "modernc.org/sqlite"
 )
 
@@ -56,7 +56,7 @@ func Open(dir string, days int, logger *log.Logger) (*Store, error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, fmt.Errorf("cannot create data directory")
 	}
-	u := databaseURL(filepath.Join(dir, "tollglass.db"))
+	u := databaseURL(filepath.Join(dir, "tabslip.db"))
 	q := u.Query()
 	q.Add("_pragma", "journal_mode(WAL)")
 	q.Add("_pragma", "synchronous(NORMAL)")

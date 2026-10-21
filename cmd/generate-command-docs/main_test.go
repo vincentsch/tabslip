@@ -75,11 +75,11 @@ func TestCheckReportsDriftWithoutWriting(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := os.Remove(filepath.Join(dir, "tollglass_serve.md")); err != nil {
+	if err := os.Remove(filepath.Join(dir, "tabslip_serve.md")); err != nil {
 		t.Fatal(err)
 	}
 	before := readPages(t, dir)
-	if err := run(true, dir); err == nil || !strings.Contains(err.Error(), "orphaned: [old.md]") || !strings.Contains(err.Error(), "stale: [index.md]") || !strings.Contains(err.Error(), "missing: [tollglass_serve.md]") {
+	if err := run(true, dir); err == nil || !strings.Contains(err.Error(), "orphaned: [old.md]") || !strings.Contains(err.Error(), "stale: [index.md]") || !strings.Contains(err.Error(), "missing: [tabslip_serve.md]") {
 		t.Fatalf("unexpected drift result: %v", err)
 	}
 	if !reflect.DeepEqual(before, readPages(t, dir)) {

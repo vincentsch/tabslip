@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/andybalholm/brotli"
-	"github.com/vincentsch/tollglass/internal/apis"
+	"github.com/vincentsch/tabslip/internal/apis"
 )
 
 type digest struct {

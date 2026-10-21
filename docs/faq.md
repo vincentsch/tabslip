@@ -3,9 +3,9 @@
 For installation and a first call, use the [quickstart](quickstart.md).
 The [command guide](commands.md) links the full procedures.
 
-## Does Tollglass cost money?
+## Does Tabslip cost money?
 
-Tollglass has no usage charge. Your provider still charges for API calls.
+Tabslip has no usage charge. Your provider still charges for API calls.
 The offline demo uses simulated calls and needs no key. Your coding agent
 is a separate service with its own terms and prices. See [costs](costs.md)
 for reported amounts, estimates and unknown values.
@@ -37,7 +37,7 @@ Ctrl+C stops a foreground server. A temporary demo directory is removed;
 an explicit demo data directory remains. Keep the database and signing key together.
 
 Restart with the same config, data directory and required environment.
-Installation does not add a service manager, so routing through Tollglass
+Installation does not add a service manager, so routing through Tabslip
 also needs a running gateway after reboot. The [agent setup guide](setup-with-an-agent.md#reuse-stopping-and-undo)
 explains owned background processes and undo. See [troubleshooting](troubleshooting.md)
 if calls fail after stopping.

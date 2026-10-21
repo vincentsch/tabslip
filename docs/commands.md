@@ -1,7 +1,7 @@
 # Commands
 
-Tollglass starts the gateway with `tollglass` or `tollglass serve`.
-Use `tollglass demo` to try simulated calls without a key. Commands print
+Tabslip starts the gateway with `tabslip` or `tabslip serve`.
+Use `tabslip demo` to try simulated calls without a key. Commands print
 human text by default; `--json` provides machine output and `--help` lists flags.
 
 The [generated command index](reference/index.md) describes the installed

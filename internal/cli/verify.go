@@ -10,8 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/keys"
-	"github.com/vincentsch/tollglass/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/keys"
+	"github.com/vincentsch/tabslip/internal/receipt"
 )
 
 func payload(e receipt.Envelope) (json.RawMessage, error) {
@@ -55,7 +55,7 @@ func verifyCommand(dir *string) *rungrad.Command {
 			}
 		}
 		if single {
-			b = receipt.Bundle{Type: "tollglass.bundle/v1", KeyID: receipt.KeyID(pub), Receipts: []json.RawMessage{raw}}
+			b = receipt.Bundle{Type: "tabslip.bundle/v1", KeyID: receipt.KeyID(pub), Receipts: []json.RawMessage{raw}}
 		} else {
 			if err = json.Unmarshal(raw, &b); err != nil {
 				return invalidFile(f, "malformed bundle")
@@ -101,7 +101,7 @@ func verifyCommand(dir *string) *rungrad.Command {
 		cmd.Flags().StringVar(&keyPath, "key", "", "PEM public key confirmed through another channel")
 		cmd.Flags().StringVar(&expected, "key-id", "", "Expected signer key id")
 	}
-	c.Examples = []string{"tollglass verify calls.tollglass.json --key tollglass.pub", "tollglass verify calls.tollglass.json --key-id tg_6f1c2a9b04d3e871 --json"}
+	c.Examples = []string{"tabslip verify calls.tabslip.json --key tabslip.pub", "tabslip verify calls.tabslip.json --key-id ts_6f1c2a9b04d3e871 --json"}
 	return c
 }
 func invalidFile(f *rungrad.Factory, reason string) error {

@@ -13,11 +13,11 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/keys"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/keys"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
 )
 
 type check struct {
@@ -72,7 +72,7 @@ func doctorCommand(dir, listen *string, port *int) *rungrad.Command {
 		}
 		return nil
 	})
-	c.Examples = []string{"tollglass doctor", "tollglass doctor --port 4546 --json"}
+	c.Examples = []string{"tabslip doctor", "tabslip doctor --port 4546 --json"}
 	return c
 }
 func writable(dir string) error {
@@ -94,7 +94,7 @@ func writable(dir string) error {
 		}
 		p = next
 	}
-	f, err := os.CreateTemp(p, ".tollglass-write-check-*")
+	f, err := os.CreateTemp(p, ".tabslip-write-check-*")
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func localChecks(dir string) []check {
 	}
 	if os.IsNotExist(err) && os.IsNotExist(dbErr) { // An interrupted first start may have a private key but no public key.
 		if _, e := os.Stat(filepath.Join(dir, "key.ed25519")); os.IsNotExist(e) {
-			return append(out, check{"identity", "info", "Key and database are not created yet. Start Tollglass when ready.", ""})
+			return append(out, check{"identity", "info", "Key and database are not created yet. Start Tabslip when ready.", ""})
 		}
 	}
 	if err != nil {
@@ -162,8 +162,8 @@ func portChecks(cfg config.Config) []check {
 			KeyID         string `json:"key_id"`
 			Unrecorded    int64  `json:"unrecorded_calls"`
 		}
-		if resp.StatusCode == 200 && json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&h) == nil && h.Tool == "tollglass" {
-			out := []check{{"port", "ok", fmt.Sprintf("Tollglass %s is running on port %d with key %s.", h.Version, cfg.Port, h.KeyID), ""}}
+		if resp.StatusCode == 200 && json.NewDecoder(io.LimitReader(resp.Body, 4096)).Decode(&h) == nil && h.Tool == "tabslip" {
+			out := []check{{"port", "ok", fmt.Sprintf("Tabslip %s is running on port %d with key %s.", h.Version, cfg.Port, h.KeyID), ""}}
 			if h.Unrecorded > 0 {
 				out = append(out, check{"recording", "warn", fmt.Sprintf("%d calls could not be recorded.", h.Unrecorded), "Check disk space and server diagnostics before sending more calls."})
 			}

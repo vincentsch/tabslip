@@ -1,15 +1,15 @@
 # Receipt fields
 
-A receipt is JSON signed by your Tollglass. `show --json` returns its DSSE
+A receipt is JSON signed by your Tabslip. `show --json` returns its DSSE
 envelope; decode the base64 `payload` to read the fields below. A download
 preserves the original signed bytes. Example commands use an illustrative
 data directory; substitute the one your server prints:
 
 ```sh
-tollglass receipts --data-dir ./instance-data --limit 0 --json
+tabslip receipts --data-dir ./instance-data --limit 0 --json
 ```
 
-Use a returned id with `tollglass show <receipt-id> --data-dir ./instance-data`
+Use a returned id with `tabslip show <receipt-id> --data-dir ./instance-data`
 for a terminal receipt, or add `--json` for the envelope. Open `/r/<receipt-id>`
 on the instance's Page URL for the paper view, signature results and details.
 
@@ -20,8 +20,8 @@ measured zero, never a substitute for missing data. Hashes are SHA-256 hex.
 
 | Field | Meaning |
 | --- | --- |
-| `type`, `id` | `tollglass.receipt/v1` and locally generated `rcpt_` id |
-| `instance.key_id`, `instance.tollglass` | Signing key id and Tollglass version |
+| `type`, `id` | `tabslip.receipt/v1` and locally generated `rcpt_` id |
+| `instance.key_id`, `instance.tabslip` | Signing key id and Tabslip version |
 | `time.started`, `first_byte`, `finished` | Observed UTC timestamps; first byte can be null |
 | `time.ttfb_ms`, `total_ms` | Observed milliseconds to first byte and total duration |
 | `request.upstream`, `api`, `method`, `path` | Selected route, adapter, HTTP method and API path |
@@ -67,9 +67,9 @@ key id and hashes stand for full values in a stored receipt:
 
 ```json
 {
-  "type": "tollglass.receipt/v1",
+  "type": "tabslip.receipt/v1",
   "id": "rcpt_…",
-  "instance": {"key_id": "tg_…", "tollglass": "dev"},
+  "instance": {"key_id": "ts_…", "tabslip": "dev"},
   "time": {"started": "2026-10-21T09:00:00.000Z", "first_byte": "2026-10-21T09:00:00.030Z", "finished": "2026-10-21T09:00:00.050Z", "ttfb_ms": 30, "total_ms": 50},
   "request": {"upstream": "openrouter", "api": "openai.chat", "method": "POST", "path": "/v1/chat/completions", "model": "openai/gpt-4.1", "stream": false, "params": {}, "tag": "example", "body_sha256": "…", "body_bytes": 74, "modifications": []},
   "response": {"status": 200, "complete": true, "api_status": null, "id": "gen-example-unpriced", "model": "openai/gpt-4.1", "provider": null, "finish_reason": "stop", "system_fingerprint": null, "error": null, "body_sha256": "…", "body_bytes": 300},
@@ -101,8 +101,8 @@ These describe reported values and observed failures; none checks the model itse
 ## Signed supplements and displayed totals
 
 OpenRouter can add a second DSSE envelope with payload type
-`application/vnd.tollglass.supplement+json`. Its `type` is
-`tollglass.supplement/v1`; `receipt_id` and `receipt_sha256` bind it to the
+`application/vnd.tabslip.supplement+json`. Its `type` is
+`tabslip.supplement/v1`; `receipt_id` and `receipt_sha256` bind it to the
 base payload. `source` is `openrouter.generation` and `fetched` is its time.
 Nullable `provider`, `cost`, `data_region`, and `native_tokens.prompt` and
 `completion` come from generation details. `currency` accompanies cost.

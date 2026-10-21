@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
 	"github.com/vincentsch/rungrad/testutil"
-	"github.com/vincentsch/tollglass/internal/demo"
+	"github.com/vincentsch/tabslip/internal/demo"
 )
 
 func TestDemoSeedFailureKeepsRuntimeError(t *testing.T) {

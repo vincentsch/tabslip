@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vincentsch/tollglass/internal/demo"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/demo"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
 )
 
 func findingsPanel(t *testing.T, body string) string {

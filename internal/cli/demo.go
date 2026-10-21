@@ -17,17 +17,17 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
 	"github.com/vincentsch/rungrad/output"
-	"github.com/vincentsch/tollglass/internal/config"
-	"github.com/vincentsch/tollglass/internal/demo"
-	"github.com/vincentsch/tollglass/internal/enrich"
-	"github.com/vincentsch/tollglass/internal/proxy"
-	"github.com/vincentsch/tollglass/internal/store"
-	"github.com/vincentsch/tollglass/internal/upstream"
-	"github.com/vincentsch/tollglass/internal/web"
+	"github.com/vincentsch/tabslip/internal/config"
+	"github.com/vincentsch/tabslip/internal/demo"
+	"github.com/vincentsch/tabslip/internal/enrich"
+	"github.com/vincentsch/tabslip/internal/proxy"
+	"github.com/vincentsch/tabslip/internal/store"
+	"github.com/vincentsch/tabslip/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/web"
 )
 
 func demoCommand(dataDir *string) *rungrad.Command {
-	return &rungrad.Command{Use: "demo", Short: "Try eight simulated AI calls offline", Long: "Start an isolated demo on a free local port. Calls and provider details are simulated. Stop with Ctrl+C; temporary demo data is removed on exit.", Examples: []string{"tollglass demo", "tollglass demo --data-dir ./demo-data --json", "tollglass demo --dry-run"}, Related: []string{"tollglass serve"}, Args: cobra.NoArgs, Mutates: true, OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON}, Run: func(f *rungrad.Factory, cmd *cobra.Command, _ []string) error {
+	return &rungrad.Command{Use: "demo", Short: "Try eight simulated AI calls offline", Long: "Start an isolated demo on a free local port. Calls and provider details are simulated. Stop with Ctrl+C; temporary demo data is removed on exit.", Examples: []string{"tabslip demo", "tabslip demo --data-dir ./demo-data --json", "tabslip demo --dry-run"}, Related: []string{"tabslip serve"}, Args: cobra.NoArgs, Mutates: true, OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON}, Run: func(f *rungrad.Factory, cmd *cobra.Command, _ []string) error {
 		if f.Flags.DryRun {
 			return f.WritePreview(output.DryRunPreview{Method: "START", Path: "127.0.0.1:0", Body: []output.Field{{Name: "action", Value: "would start an isolated offline demo and send eight simulated calls"}}})
 		}
@@ -35,7 +35,7 @@ func demoCommand(dataDir *string) *rungrad.Command {
 		explicit := cmd.Flags().Changed("data-dir") || cmd.Root().PersistentFlags().Changed("data-dir")
 		if !explicit {
 			var err error
-			dir, err = os.MkdirTemp("", "tollglass-demo-")
+			dir, err = os.MkdirTemp("", "tabslip-demo-")
 			if err != nil {
 				return rungrad.NewError(2, "Cannot create the temporary demo directory.")
 			}
@@ -100,13 +100,13 @@ func runSeededDemo(f *rungrad.Factory, dir string, openPage, keep, locked bool, 
 	}
 	// Keep the examples ready for the receipt commands as they become available.
 	commands := map[string]string{
-		"export":     "tollglass export --data-dir " + shellQuote(dir) + " --out " + shellQuote(filepath.Join(dir, "demo.tollglass.json")),
-		"key_export": "tollglass key export --data-dir " + shellQuote(dir) + " --out " + shellQuote(filepath.Join(dir, "tollglass.pub")),
-		"verify":     "tollglass verify " + shellQuote(filepath.Join(dir, "demo.tollglass.json")) + " --key " + shellQuote(filepath.Join(dir, "tollglass.pub")),
+		"export":     "tabslip export --data-dir " + shellQuote(dir) + " --out " + shellQuote(filepath.Join(dir, "demo.tabslip.json")),
+		"key_export": "tabslip key export --data-dir " + shellQuote(dir) + " --out " + shellQuote(filepath.Join(dir, "tabslip.pub")),
+		"verify":     "tabslip verify " + shellQuote(filepath.Join(dir, "demo.tabslip.json")) + " --key " + shellQuote(filepath.Join(dir, "tabslip.pub")),
 	}
 	result := map[string]any{"page_url": page, "base_urls": map[string]string{"openai": page + "/demo/v1", "anthropic": page + "/demo"}, "data_dir": dir, "key_id": db.KeyID, "commands": commands}
 	if err = f.WriteResult(result, func(w io.Writer) {
-		fmt.Fprintf(w, "Tollglass demo is running. All calls and providers are simulated.\n\n  Page        %s\n  OpenAI      %s/demo/v1\n  Anthropic   %s/demo\n  Data dir    %s\n\n", page, page, page, dir)
+		fmt.Fprintf(w, "Tabslip demo is running. All calls and providers are simulated.\n\n  Page        %s\n  OpenAI      %s/demo/v1\n  Anthropic   %s/demo\n  Data dir    %s\n\n", page, page, page, dir)
 		for _, name := range []string{"export", "key_export", "verify"} {
 			fmt.Fprintln(w, commands[name])
 		}

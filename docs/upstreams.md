@@ -1,6 +1,6 @@
 # Connect an upstream
 
-Tollglass keeps your provider and forwards the client's credentials. Change
+Tabslip keeps your provider and forwards the client's credentials. Change
 the client's base URL to the selected local route. The [setup guide](../AGENTS.md)
 explains discovery, instance reuse and undo.
 
@@ -34,8 +34,8 @@ address and use the URLs above.
 With bridge networking, add `--add-host=host.docker.internal:host-gateway` to
 `docker run`, then use `http://host.docker.internal:4545/openai/v1`, or the
 route for your upstream. The hostname alone does not make loopback reachable.
-Tollglass must listen on the host bridge address or another reachable address,
-for example `tollglass serve --listen 0.0.0.0`. Check access from the container.
+Tabslip must listen on the host bridge address or another reachable address,
+for example `tabslip serve --listen 0.0.0.0`. Check access from the container.
 Use the selected port if it differs from 4545.
 
 The proxy forwards credentials without added authentication. Restrict access
@@ -45,12 +45,12 @@ existing instance or changing its listen address.
 
 ## A server beside your app
 
-Run Tollglass beside the app and use its loopback address. Reach the page with
+Run Tabslip beside the app and use its loopback address. Reach the page with
 `ssh -N -L 4545:127.0.0.1:4545 user@server`, then open
-`http://127.0.0.1:4545`. The local port must equal the remote Tollglass port
+`http://127.0.0.1:4545`. The local port must equal the remote Tabslip port
 because the page checks the port in the browser's Host header. Use the selected
 port on both sides and in the local page URL. That local port must be free.
-The tunnel ends with Ctrl+C. Tollglass must keep running while the app routes
+The tunnel ends with Ctrl+C. Tabslip must keep running while the app routes
 through it. See the setup guide for detached start, owned-process stop and undo.
 
 ## Forwarding and tags
@@ -65,8 +65,8 @@ Receipts cover these POST endpoints:
 | Anthropic `/v1/messages` | Yes | SSE | Model, id, stop reason, uncached input, cache reads/writes and output tokens |
 
 Credentials stay in the client: `Authorization`, `x-api-key` and provider
-headers pass through. Tollglass strips hop-by-hop headers and its own
-`X-Tollglass-*` headers. It does not retry provider calls. All paths forward,
+headers pass through. Tabslip strips hop-by-hop headers and its own
+`X-Tabslip-*` headers. It does not retry provider calls. All paths forward,
 but receipt capture only covers POST chat completions, Responses, embeddings
 and Anthropic Messages at their `/v1` API paths.
 
@@ -82,7 +82,7 @@ For example, using the existing key and a saved OpenAI base URL:
 curl -fsS "$OPENAI_BASE_URL/chat/completions" \
   -H "Authorization: Bearer $OPENAI_API_KEY" \
   -H 'Content-Type: application/json' \
-  -H 'X-Tollglass-Tag: my-project' \
+  -H 'X-Tabslip-Tag: my-project' \
   -d '{"model":"gpt-4.1","messages":[{"role":"user","content":"Hello"}]}'
 ```
 

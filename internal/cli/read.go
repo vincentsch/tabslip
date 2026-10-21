@@ -12,12 +12,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/vincentsch/rungrad"
-	"github.com/vincentsch/tollglass/internal/receipt"
-	"github.com/vincentsch/tollglass/internal/store"
+	"github.com/vincentsch/tabslip/internal/receipt"
+	"github.com/vincentsch/tabslip/internal/store"
 )
 
 func command(use, short string, run func(*rungrad.Factory, *cobra.Command, []string) error) *rungrad.Command {
-	return &rungrad.Command{Use: use, Short: short, Long: short + ". Content stays on your local machine.", Examples: []string{"tollglass " + strings.Fields(use)[0] + " --help"}, Related: []string{"tollglass receipts", "tollglass export", "tollglass verify"}, OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON}, Args: cobra.NoArgs, Run: run}
+	return &rungrad.Command{Use: use, Short: short, Long: short + ". Content stays on your local machine.", Examples: []string{"tabslip " + strings.Fields(use)[0] + " --help"}, Related: []string{"tabslip receipts", "tabslip export", "tabslip verify"}, OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON}, Args: cobra.NoArgs, Run: run}
 }
 func localError(err error) error {
 	if errors.Is(err, os.ErrNotExist) || errors.Is(err, sql.ErrNoRows) {
@@ -73,7 +73,7 @@ func receiptsCommand(dir *string) *rungrad.Command {
 		})
 	})
 	c.Configure = func(cmd *cobra.Command) { filterFlags(cmd, &filter, true) }
-	c.Examples = []string{"tollglass receipts", "tollglass receipts --tag acme-shop --since 2026-10-01 --json"}
+	c.Examples = []string{"tabslip receipts", "tabslip receipts --tag acme-shop --since 2026-10-01 --json"}
 	return c
 }
 func showCommand(dir *string) *rungrad.Command {
@@ -90,7 +90,7 @@ func showCommand(dir *string) *rungrad.Command {
 		return f.WriteResult(call.Envelope, func(w io.Writer) { renderReceiptStyled(w, call, f.TerminalMode().Color) })
 	})
 	c.Args = cobra.ExactArgs(1)
-	c.Examples = []string{"tollglass show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T", "tollglass show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T --json"}
+	c.Examples = []string{"tabslip show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T", "tabslip show rcpt_01JB8Y3Q6V9W2N4K8M0P5R7S1T --json"}
 	return c
 }
 func value[T any](p *T) string {
@@ -146,7 +146,7 @@ func renderReceiptStyled(w io.Writer, c store.Call, color bool) {
 	}
 	r, s := c.Receipt, c.Summary
 	sep()
-	line("               TOLLGLASS")
+	line("               TABSLIP")
 	line(s.Started)
 	line("RECEIPT " + r.ID)
 	sep()

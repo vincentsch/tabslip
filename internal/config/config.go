@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/vincentsch/tollglass/internal/upstream"
+	"github.com/vincentsch/tabslip/internal/upstream"
 	"gopkg.in/yaml.v3"
 )
 
@@ -61,16 +61,16 @@ func Validate(c Config) error {
 }
 func DataDir() string {
 	if runtime.GOOS == "windows" {
-		return filepath.Join(os.Getenv("LOCALAPPDATA"), "tollglass")
+		return filepath.Join(os.Getenv("LOCALAPPDATA"), "tabslip")
 	}
 	h, _ := os.UserHomeDir()
 	if runtime.GOOS == "darwin" {
-		return filepath.Join(h, "Library", "Application Support", "tollglass")
+		return filepath.Join(h, "Library", "Application Support", "tabslip")
 	}
 	if x := os.Getenv("XDG_DATA_HOME"); x != "" {
-		return filepath.Join(x, "tollglass")
+		return filepath.Join(x, "tabslip")
 	}
-	return filepath.Join(h, ".local", "share", "tollglass")
+	return filepath.Join(h, ".local", "share", "tabslip")
 }
 
 // SaveSettings replaces only settings owned by the local page. Other YAML nodes,
@@ -119,7 +119,7 @@ func SaveSettings(path string, c Config, keepContentLocked bool) error {
 	if err = os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 		return fmt.Errorf("cannot create config directory")
 	}
-	f, err := os.CreateTemp(filepath.Dir(path), ".tollglass-config-*")
+	f, err := os.CreateTemp(filepath.Dir(path), ".tabslip-config-*")
 	if err != nil {
 		return fmt.Errorf("cannot create config file")
 	}
