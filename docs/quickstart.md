@@ -88,7 +88,7 @@ After installing, start the gateway:
 tabslip serve
 ```
 
-Open `http://127.0.0.1:4545`. Calls updates live; click a call for its paper
+Open `http://127.0.0.1:4545`. The Calls page updates live; click a call for its paper
 receipt, or open Spend for totals and Setup for URLs and content settings.
 The theme button remembers your choice. `--open` opens the page on startup.
 

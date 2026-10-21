@@ -85,9 +85,14 @@ func NewApp() *rungrad.App {
 		Mutates:     true,
 		OutputModes: []string{rungrad.OutputModeHuman, rungrad.OutputModeJSON},
 		Run: func(f *rungrad.Factory, cmd *cobra.Command, args []string) error {
-			c, err := config.Load(f.ConfigPath())
+			c, missing, err := loadSettings(f, cmd)
 			if err != nil {
 				return rungrad.NewError(1, err.Error())
+			}
+			if missing != "" {
+				if err := warnMissingConfig(f, missing); err != nil {
+					return err
+				}
 			}
 			if cmd.Flags().Changed("listen") || root.PersistentFlags().Changed("listen") {
 				c.Listen = listen

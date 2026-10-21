@@ -13,6 +13,10 @@ repair files, and an HTTP answer does not validate credentials.
 
 ## Config and storage
 
+If a selected config file is missing, Tabslip names it and uses defaults.
+Correct `--config` or `TABSLIP_CONFIG`, or create the selected YAML file.
+Doctor reports this as a warning; it does not fail solely for a missing file.
+
 | Doctor message | What to do |
 | --- | --- |
 | `config file is malformed; check its YAML settings` | Correct the YAML in the selected config; check `--config` and `TABSLIP_CONFIG`. |
@@ -74,5 +78,3 @@ or restore the original provider URL first. Installation does not add a
 service manager. For container reachability, remote pages and Host-header
 checks, see [upstreams](upstreams.md). For command flags, use the
 [command reference](reference/index.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

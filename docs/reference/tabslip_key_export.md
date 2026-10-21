@@ -17,7 +17,7 @@ tabslip key export --out tabslip.pub --dry-run
 
 ## Flags
 
-- `--out` New PEM output file (required)
+- `--out` New PEM output file (required). Type: `string`. Default: unset (empty).
 
 ## Output modes
 
@@ -32,3 +32,7 @@ This command changes state and honors `--dry-run`.
 - tabslip receipts
 - tabslip export
 - tabslip verify
+
+## Shared flags
+
+See [global flags](index.md#global-flags) for shared options, types and defaults.

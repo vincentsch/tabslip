@@ -50,5 +50,3 @@ The embedded snapshot comes from LiteLLM revision
 `go generate ./internal/prices`, which downloads that pinned revision.
 See [prices commands](reference/tabslip_prices.md) and
 [receipt fields](receipts.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

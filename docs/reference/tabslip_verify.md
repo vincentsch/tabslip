@@ -17,8 +17,8 @@ tabslip verify calls.tabslip.json --key-id ts_6f1c2a9b04d3e871 --json
 
 ## Flags
 
-- `--key` PEM public key confirmed through another channel
-- `--key-id` Expected signer key id
+- `--key` PEM public key confirmed through another channel. Type: `string`. Default: unset (empty).
+- `--key-id` Expected signer key id. Type: `string`. Default: unset (empty).
 
 ## Output modes
 
@@ -29,3 +29,7 @@ human, json
 - tabslip receipts
 - tabslip export
 - tabslip verify
+
+## Shared flags
+
+See [global flags](index.md#global-flags) for shared options, types and defaults.

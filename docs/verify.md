@@ -98,5 +98,3 @@ with totals, unknown-cost coverage and a compact call table, without individual
 receipt SVGs. These formats combine supplement cost once; they cannot be
 verified as signed bundles. No export includes local content.
 See the [command reference](reference/index.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

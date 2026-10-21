@@ -23,5 +23,5 @@ Choose a guide for the task:
 - [Troubleshoot setup and recording](troubleshooting.md)
 - [Run an example](../examples/README.md)
 
-For source changes, `make docs` regenerates only `docs/reference/`.
-`make docs-check` checks that generated copy without rewriting it.
+Each command page links to the [shared flags](reference/index.md#global-flags).
+Flag entries show their types and defaults.

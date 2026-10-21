@@ -52,5 +52,3 @@ reboot. The setup does not install a service manager. Use the recorded restart
 command with the same config environment, explicit flags and data directory.
 See [upstreams](upstreams.md) for Docker and remote-page access, and the
 [command reference](reference/index.md) for flags.
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

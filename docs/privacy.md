@@ -32,6 +32,8 @@ stored prompt or answer text. Content is readable only through the local page.
 | Windows | `%AppData%\tabslip\config.yaml` | `%LocalAppData%\tabslip` |
 
 Config selection is `--config`, then `TABSLIP_CONFIG`, then the OS default.
+A missing selected file uses defaults and produces a warning in `serve`
+or a `config` warning in doctor. An absent OS-default file is normal on first run.
 `--data-dir` overrides the data location. The directory holds `tabslip.db`,
 SQLite WAL files while running, `key.ed25519`, `key.pub`, and optional price
 snapshots. Keep the private key and database together in backups. Read-only
@@ -64,5 +66,3 @@ Host headers only. State changes require a same-origin POST and page token.
 Proxy routes follow `--listen`; they forward credentials without added
 proxy authentication. See [network access](upstreams.md) and the
 [command reference](reference/index.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

@@ -9,7 +9,7 @@
 
 Tabslip forwards calls to your AI provider and keeps receipts signed by your Tabslip.
 
-<p align="center"><a href="docs/quickstart.md">Quickstart</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
+<p align="center"><a href="https://www.tabslip.com">Website</a> · <a href="docs/quickstart.md">Quickstart</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
 
 ![The Calls page in dark theme, with eight simulated demo calls, model names, tokens, costs and findings](docs/media/calls-dark.webp)
 

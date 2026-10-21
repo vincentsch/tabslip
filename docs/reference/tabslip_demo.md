@@ -27,3 +27,7 @@ This command changes state and honors `--dry-run`.
 ## Related commands
 
 - tabslip serve
+
+## Shared flags
+
+See [global flags](index.md#global-flags) for shared options, types and defaults.

@@ -27,24 +27,30 @@ func Default() Config {
 	return Config{Listen: "127.0.0.1", Port: 4545, RetentionDays: 90, EnrichOpenrouter: true}
 }
 func Load(path string) (Config, error) {
+	c, _, err := LoadWithMissing(path)
+	return c, err
+}
+
+// LoadWithMissing reports an absent file while keeping first-run defaults.
+func LoadWithMissing(path string) (Config, bool, error) {
 	c := Default()
 	b, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
-		return c, nil
+		return c, true, nil
 	}
 	if err != nil {
-		return c, fmt.Errorf("cannot read config file")
+		return c, false, fmt.Errorf("cannot read config file")
 	}
 	d := yaml.NewDecoder(strings.NewReader(string(b)))
 	d.KnownFields(true)
 	if err = d.Decode(&c); err != nil && err != io.EOF {
-		return c, fmt.Errorf("config file is malformed; check its YAML settings")
+		return c, false, fmt.Errorf("config file is malformed; check its YAML settings")
 	}
 	var extra any
 	if err = d.Decode(&extra); err != io.EOF {
-		return c, fmt.Errorf("config file must contain one valid YAML document")
+		return c, false, fmt.Errorf("config file must contain one valid YAML document")
 	}
-	return c, nil
+	return c, false, nil
 }
 func Validate(c Config) error {
 	if c.Port < 1 || c.Port > 65535 {

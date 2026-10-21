@@ -27,9 +27,11 @@ type check struct {
 	Fix     string `json:"fix,omitempty"`
 }
 
+var doctorTransport = func() *http.Transport { return &http.Transport{Proxy: nil} }
+
 func doctorCommand(dir, listen *string, port *int) *rungrad.Command {
 	c := command("doctor", "Check local setup and upstream reachability", func(f *rungrad.Factory, cmd *cobra.Command, _ []string) error {
-		cfg, err := config.Load(f.ConfigPath())
+		cfg, missing, err := loadSettings(f, cmd)
 		if cmd.Flags().Changed("port") {
 			cfg.Port = *port
 		}
@@ -42,13 +44,15 @@ func doctorCommand(dir, listen *string, port *int) *rungrad.Command {
 		}
 		if err != nil {
 			checks = append(checks, check{"config", "fail", err.Error(), "Correct the config YAML or select another --config file."})
+		} else if missing != "" {
+			checks = append(checks, check{"config", "warn", missing, missingConfigFix})
 		} else {
 			checks = append(checks, check{"config", "ok", "Config is valid.", ""})
 		}
 		checks = append(checks, localChecks(*dir)...)
 		if err == nil {
 			checks = append(checks, portChecks(cfg)...)
-			transport := &http.Transport{Proxy: nil}
+			transport := doctorTransport()
 			defer transport.CloseIdleConnections()
 			checks = append(checks, reachability(cfg, transport)...)
 		}

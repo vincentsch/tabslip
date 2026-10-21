@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"html"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -452,7 +454,8 @@ func TestDeleteCascadesAndPromptMatchesCopySource(t *testing.T) {
 	s.Store.Flush()
 	for _, path := range []string{"../../README.md", "../../AGENTS.md", "../../docs/setup-with-an-agent.md"} {
 		public, err := os.ReadFile(path)
-		if err != nil || !strings.Contains(string(public), SetupPrompt) {
+		match := regexp.MustCompile("(?s)```text\n(.*?)\n```").FindStringSubmatch(string(public))
+		if err != nil || len(match) != 2 || match[1] != SetupPrompt {
 			t.Fatalf("%s: public setup prompt differs from displayed and copied source: %v", path, err)
 		}
 	}
@@ -603,6 +606,40 @@ func TestUnknownCostHasNoCurrency(t *testing.T) {
 		body := request(s, path).Body.String()
 		if strings.Contains(body, "unknown USD") || strings.Contains(body, "unknown <small>USD") || strings.Contains(body, "unknown USD (unknown)") {
 			t.Fatalf("%s: unknown cost has currency", path)
+		}
+	}
+}
+
+func TestSpendRegionsHaveDistinctHeadingNames(t *testing.T) {
+	s, _ := fixture(t)
+	body := request(s, "/spend").Body.String()
+	names := []string{"Daily totals (accessible table)", "By model", "By provider", "By upstream", "By tag", "Served by (reported providers)"}
+	regions := regexp.MustCompile(`<div class="table-scroll" tabindex="0" role="region" aria-labelledby="([^"]+)">`).FindAllStringSubmatch(body, -1)
+	if len(regions) != len(names) {
+		t.Fatalf("got %d named regions", len(regions))
+	}
+	seen := map[string]bool{}
+	for i, region := range regions {
+		id := region[1]
+		if seen[id] {
+			t.Fatalf("duplicate region label id %s", id)
+		}
+		seen[id] = true
+		label := regexp.MustCompile(`<(?:h2|summary) id="` + regexp.QuoteMeta(id) + `">([^<]+)</(?:h2|summary)>`).FindStringSubmatch(body)
+		if len(label) != 2 || label[1] != names[i] {
+			t.Fatalf("region %s label %v, want %q", id, label, names[i])
+		}
+	}
+}
+
+func TestSetupCodeTextMatchesSourcesExactly(t *testing.T) {
+	s, _ := fixture(t)
+	body := request(s, "/setup").Body.String()
+	for i, snippet := range s.snippets() {
+		pattern := fmt.Sprintf(`<pre id="snippet-%d"><code>(.*?)</code></pre>`, i)
+		match := regexp.MustCompile("(?s)" + pattern).FindStringSubmatch(body)
+		if len(match) != 2 || html.UnescapeString(match[1]) != snippet.Code {
+			t.Errorf("%s code text changed", snippet.Title)
 		}
 	}
 }

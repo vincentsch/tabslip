@@ -105,5 +105,3 @@ failure. `enrich_openrouter: false` disables it after restart.
 Custom upstream names cannot replace presets or local page routes. Do not
 put keys in config. See [privacy](privacy.md) and the
 [command reference](reference/index.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

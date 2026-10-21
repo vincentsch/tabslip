@@ -17,13 +17,13 @@ tabslip export --format html --tag acme-shop --out statement.html --dry-run
 
 ## Flags
 
-- `--format` bundle, jsonl, csv or html
-- `--model` Select the requested or reported model exactly
-- `--out` New output file (required)
-- `--since` Include calls from this date (RFC 3339 or YYYY-MM-DD, UTC)
-- `--tag` Select a tag exactly
-- `--until` Exclude calls from this date onward
-- `--upstream` Select an upstream exactly
+- `--format` bundle, jsonl, csv or html. Type: `string`. Default: `bundle`.
+- `--model` Select the requested or reported model exactly. Type: `string`. Default: unset (empty).
+- `--out` New output file (required). Type: `string`. Default: unset (empty).
+- `--since` Include calls from this date (RFC 3339 or YYYY-MM-DD, UTC). Type: `string`. Default: unset (empty).
+- `--tag` Select a tag exactly. Type: `string`. Default: unset (empty).
+- `--until` Exclude calls from this date onward. Type: `string`. Default: unset (empty).
+- `--upstream` Select an upstream exactly. Type: `string`. Default: unset (empty).
 
 ## Output modes
 
@@ -38,3 +38,7 @@ This command changes state and honors `--dry-run`.
 - tabslip receipts
 - tabslip export
 - tabslip verify
+
+## Shared flags
+
+See [global flags](index.md#global-flags) for shared options, types and defaults.

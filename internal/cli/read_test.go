@@ -402,6 +402,9 @@ func TestPricePreviewAndOutputAreOffline(t *testing.T) {
 
 func TestOrdinaryErrorsRenderOnce(t *testing.T) {
 	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "absent.yaml"), []byte("{}\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
 	type errorCase struct {
 		name    string
 		args    []string

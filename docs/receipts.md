@@ -125,5 +125,3 @@ if any contributor fails, even when that base envelope alone is valid.
 Undecodable stored data is a read error (exit 2); missing receipts use exit 5.
 See [verification](verify.md), [costs](costs.md) and the
 [command reference](reference/index.md).
-
-See the [quickstart](quickstart.md) and [FAQ](faq.md) for getting started and common questions.

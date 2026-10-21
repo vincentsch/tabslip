@@ -30,6 +30,7 @@ func TestReferenceIndependentOfDataDirectory(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		data := t.TempDir()
 		t.Setenv("XDG_DATA_HOME", data)
+		t.Setenv("XDG_CONFIG_HOME", filepath.Join(data, "config"))
 		dir := t.TempDir()
 		if err := run(false, dir); err != nil {
 			t.Fatal(err)
@@ -93,5 +94,25 @@ func TestCheckReportsDriftWithoutWriting(t *testing.T) {
 	}
 	if body, err := os.ReadFile(handwritten); err != nil || string(body) != "handwritten" {
 		t.Fatal("generation touched handwritten page")
+	}
+}
+
+func TestTypedFlagsAndSharedLinks(t *testing.T) {
+	pages := generate()
+	for name, page := range pages {
+		if name != "index.md" && !strings.Contains(page, "[global flags](index.md#global-flags)") {
+			t.Errorf("%s has no shared flags link", name)
+		}
+	}
+	for _, want := range []string{"`--port` Port to listen on. Type: `int`. Default: `4545`", "`--keep-content` Keep request and answer content locally. Type: `bool`. Default: `false`", "$XDG_CONFIG_HOME/tabslip/config.yaml", "%LocalAppData%", "~/.local/share/tabslip"} {
+		if !strings.Contains(pages["index.md"], want) {
+			t.Errorf("missing global flag detail: %s", want)
+		}
+	}
+	if !strings.Contains(pages["tabslip_receipts.md"], "Type: `int`. Default: `20`") {
+		t.Fatal("local limit metadata missing")
+	}
+	if !strings.Contains(pages["tabslip_key_export.md"], "Type: `string`. Default: unset (empty)") {
+		t.Fatal("nested flag default missing")
 	}
 }

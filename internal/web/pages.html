@@ -1,30 +1,373 @@
-{{define "layout"}}<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}} · Tabslip</title><link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script></head><body data-page="{{.Page}}"><header><a class="brand" href="/"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor"/><path d="m7 17 10-10" stroke="currentColor"/></svg>Tabslip</a><nav aria-label="Main"><a href="/" {{if eq .Page "calls"}}aria-current="page"{{end}}>Calls</a><a href="/spend" {{if eq .Page "spend"}}aria-current="page"{{end}}>Spend</a><a href="/setup" {{if eq .Page "setup"}}aria-current="page"{{end}}>Setup</a></nav><span id="content-state" class="content-state{{if or .Config.KeepContent .Config.KeepContentTags}} stored{{end}}">{{.Content}}</span><button id="theme" type="button" aria-label="Switch color theme">Theme</button></header>{{if .Demo}}<aside class="demo">Demo data, nothing here is real</aside>{{end}}<aside id="recording-warning" role="status" hidden></aside><div class="sr-only" id="announcements" aria-live="polite"></div><main id="main">{{if .Error}}<p role="alert" class="error">{{.Error}}</p>{{end}}{{if eq .Page "calls"}}{{template "calls" .}}{{else if eq .Page "receipt"}}{{template "receipt" .}}{{else if eq .Page "spend"}}{{template "spend" .}}{{else}}{{template "setup" .}}{{end}}</main><footer>Model names, token counts and provider cost come from the provider.</footer></body></html>{{end}}
+{{define "layout"}}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>{{.Title}} · Tabslip</title>
+    <link rel="stylesheet" href="/style.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body data-page="{{.Page}}">
+    <header>
+      <a class="brand" href="/"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" fill="none" stroke="currentColor"/><path d="m7 17 10-10" stroke="currentColor"/></svg>Tabslip</a>
+      <nav aria-label="Main">
+        <a href="/" {{if eq .Page "calls"}}aria-current="page"{{end}}>Calls</a>
+        <a href="/spend" {{if eq .Page "spend"}}aria-current="page"{{end}}>Spend</a>
+        <a href="/setup" {{if eq .Page "setup"}}aria-current="page"{{end}}>Setup</a>
+      </nav><span id="content-state" class="content-state{{if or .Config.KeepContent .Config.KeepContentTags}} stored{{end}}">{{.Content}}</span>
+      <button id="theme" type="button" aria-label="Switch color theme">Theme</button>
+    </header>
+    {{if .Demo}}
+    <aside class="demo">Demo data, nothing here is real
+    </aside>
+    {{end}}
+    <aside id="recording-warning" role="status" hidden>
+    </aside>
+    <div class="sr-only" id="announcements" aria-live="polite">
+    </div>
+    <main id="main">
+      {{if .Error}}
+      <p role="alert" class="error">{{.Error}}</p>
+      {{end}}
+      {{if eq .Page "calls"}}
+      {{template "calls" .}}
+      {{else if eq .Page "receipt"}}
+      {{template "receipt" .}}
+      {{else if eq .Page "spend"}}
+      {{template "spend" .}}
+      {{else}}
+      {{template "setup" .}}
+      {{end}}
+    </main>
+    <footer>Model names, token counts and provider cost come from the provider.</footer>
+  </body>
+</html>
+{{end}}
 
-{{define "filters"}}<form class="filters" method="get" aria-label="Filter calls">
-{{if eq .Page "calls"}}<label class="search">Search <input type="search" name="q" id="search" value="{{.Filter.Search}}" placeholder="Search calls… /" autocomplete="off"></label>{{end}}
-{{range $o:=.Options}}{{if or (eq $.Page "calls") (eq .Name "tag")}}<label>{{.Label}}<select name="{{.Name}}"><option value="">All {{.Label}}s</option>{{range .Values}}<option {{if eq . $o.Selected}}selected{{end}} value="{{.}}">{{.}}</option>{{end}}</select></label>{{end}}{{end}}
-<label>Since (UTC)<input name="since" type="date" value="{{dateInput .Filter.Since}}"></label><label>Until (UTC, exclusive)<input name="until" type="date" value="{{dateInput .Filter.Until}}"></label>
-{{if eq .Page "calls"}}<label>Status<select name="status"><option value="">All statuses</option><option value="ok" {{if eq .Filter.Status "ok"}}selected{{end}}>200–399</option><option value="error" {{if eq .Filter.Status "error"}}selected{{end}}>Errors</option></select></label><label>Order<select name="order"><option value="newest">Newest first</option><option value="slowest" {{if .Filter.Slowest}}selected{{end}}>Slowest first</option></select></label><label class="check"><input type="checkbox" name="findings" {{if .Filter.FindingsOnly}}checked{{end}}>Only with findings</label>{{end}}<button type="submit">Apply</button><a href="{{if eq .Page "spend"}}/spend{{else}}/{{end}}">Clear</a></form>{{end}}
+{{define "filters"}}
+<form class="filters" method="get" aria-label="Filter calls">
+  {{if eq .Page "calls"}}
+  <label class="search">Search <input type="search" name="q" id="search" value="{{.Filter.Search}}" placeholder="Search calls… /" autocomplete="off">
+  </label>
+  {{end}}
+  {{range $o:=.Options}}{{if or (eq $.Page "calls") (eq .Name "tag")}}
+  <label>{{.Label}}<select name="{{.Name}}">
+      <option value="">All {{.Label}}s</option>
+      {{range .Values}}<option {{if eq . $o.Selected}}selected{{end}} value="{{.}}">{{.}}</option>
+      {{end}}</select>
+  </label>
+  {{end}}
+{{end}}
+  <label>Since (UTC)<input name="since" type="date" value="{{dateInput .Filter.Since}}">
+  </label>
+  <label>Until (UTC, exclusive)<input name="until" type="date" value="{{dateInput .Filter.Until}}">
+  </label>
+  {{if eq .Page "calls"}}
+  <label>Status<select name="status">
+      <option value="">All statuses</option>
+      <option value="ok" {{if eq .Filter.Status "ok"}}selected{{end}}>200–399</option>
+      <option value="error" {{if eq .Filter.Status "error"}}selected{{end}}>Errors</option></select>
+  </label>
+  <label>Order<select name="order">
+      <option value="newest">Newest first</option>
+      <option value="slowest" {{if .Filter.Slowest}}selected{{end}}>Slowest first</option></select>
+  </label>
+  <label class="check">
+    <input type="checkbox" name="findings" {{if .Filter.FindingsOnly}}checked{{end}}>Only with findings
+  </label>
+  {{end}}<button type="submit">Apply</button>
+  <a href="{{if eq .Page "spend"}}/spend{{else}}/{{end}}">Clear</a>
+</form>
+{{end}}
 
-{{define "calls"}}<div class="heading"><div><h1>Calls</h1><p>The model you asked for. The model the provider reports.</p></div><span class="muted">Live · <span id="connection">connecting</span></span></div>{{template "filters" .}}<section id="call-results">{{template "call-results" .}}</section>{{end}}
-{{define "call-results"}}<div class="table-panel"><table class="calls"><caption class="sr-only">AI calls, newest first or slowest first. Open a receipt for full details.</caption><thead><tr><th>Time / tag</th><th>Upstream</th><th>Asked → reported</th><th>Provider</th><th>Tokens in / out</th><th>Cost USD</th><th>First byte / total</th><th>Status</th></tr></thead><tbody id="call-rows">{{range .Calls}}{{template "row" .Summary}}{{end}}</tbody></table></div>
-{{if not .Calls}}<div class="empty"><h2>No calls here yet</h2><p>Point your OpenAI client at <code class="openai-url">{{.OpenAIURL}}</code>.</p><pre><code>from openai import OpenAI
+{{define "calls"}}
+<div class="heading">
+  <div>
+    <h1>Calls</h1>
+    <p>The model you asked for. The model the provider reports.</p>
+  </div><span class="muted">Live · <span id="connection">connecting</span></span>
+</div>
+{{template "filters" .}}
+<section id="call-results">
+  {{template "call-results" .}}
+</section>
+{{end}}
+
+{{define "call-results"}}
+<div class="table-panel">
+  <table class="calls">
+    <caption class="sr-only">AI calls, newest first or slowest first. Open a receipt for full details.</caption>
+    <thead>
+      <tr>
+        <th>Time / tag</th>
+        <th>Upstream</th>
+        <th>Asked → reported</th>
+        <th>Provider</th>
+        <th>Tokens in / out</th>
+        <th>Cost USD</th>
+        <th>First byte / total</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="call-rows">
+      {{range .Calls}}{{template "row" .Summary}}{{end}}
+    </tbody>
+  </table>
+</div>
+{{if not .Calls}}
+<div class="empty">
+  <h2>No calls here yet</h2>
+  <p>Point your OpenAI client at <code class="openai-url">{{.OpenAIURL}}</code>.</p>
+  <pre><code>from openai import OpenAI
 client = OpenAI(base_url="<span class="openai-url">{{.OpenAIURL}}</span>")
-client.chat.completions.create(model="gpt-4.1", messages=[{"role": "user", "content": "Hello"}])</code></pre><p>No key at hand? Run <code>tabslip demo</code>.</p><p>Active filters may hide stored calls. <a href="/">Clear filters</a> or <a href="/setup">open Setup</a>.</p></div>{{end}}
-{{if .Next}}<a class="button" id="load-more" href="{{.Next}}">Load more</a>{{end}}{{end}}
-{{define "row"}}<tr data-id="{{.ID}}" data-started="{{.Started}}" data-total="{{.Total}}"><td><a class="receipt-link" href="/r/{{.ID}}"><time datetime="{{.Started}}">{{.Started}}</time><span class="sr-only">Receipt {{.ID}}</span></a><br><span class="muted">{{val .Tag}}</span></td><td><code class="chip">{{.Upstream}}</code></td><td class="models">{{val .RequestedModel}}<span class="muted"> → </span>{{val .ReportedModel}}{{if warn .}}<br><span class="badge warning">● Findings</span>{{end}}</td><td class="provider">{{val .Provider}}</td><td class="mono">{{num .Input}} / {{num .Output}}</td><td class="mono">{{val .Cost}}{{if .Cost}}<br><span class="muted">{{.CostSource}}</span>{{end}}</td><td class="mono">{{num .TTFB}} / {{.Total}} ms</td><td><span class="badge {{if badStatus .Status}}bad{{else}}ok{{end}}">● {{num .Status}}</span></td></tr>{{end}}
+client.chat.completions.create(model="gpt-4.1", messages=[{"role": "user", "content": "Hello"}])</code></pre>
+  <p>No key at hand? Run <code>tabslip demo</code>.</p>
+  <p>Active filters may hide stored calls. <a href="/">Clear filters</a> or <a href="/setup">open Setup</a>.</p>
+</div>
+{{end}}
+{{if .Next}}<a class="button" id="load-more" href="{{.Next}}">Load more</a>
+{{end}}
+{{end}}
 
-{{define "receipt"}}<div class="heading"><h1>Receipt</h1><a href="/">← Calls</a></div><div class="receipt-layout"><section aria-label="Paper receipt">{{.SVG}}<pre class="sr-only">{{.ReceiptText}}</pre></section><section class="details"><div class="panel"><h2>{{if .Verification.SignaturesValid}}SIGNED{{else}}<span class="bad">INVALID</span>{{end}}</h2><p>Signed by your Tabslip. A valid signature shows the signed record has not changed.</p><p>{{.Verification.Claims}}</p><dl><dt>Receipt</dt><dd><code>{{.Call.Summary.ID}}</code></dd><dt>Model asked</dt><dd>{{val .Call.Summary.RequestedModel}}</dd><dt>Model reported</dt><dd>{{val .Call.Summary.ReportedModel}}</dd><dt>Provider reported</dt><dd>{{val .Call.Summary.Provider}}</dd><dt>Key id</dt><dd><code>{{.Call.Receipt.Instance.KeyID}}</code></dd></dl><a class="button" href="/r/{{.Call.Summary.ID}}/download">Download receipt</a><p class="muted">The download is the original signed envelope. It contains no prompt or answer text.</p></div>
-<div class="panel" id="findings"><h2>Findings</h2>{{range .Findings}}<p><code>{{.Code}}</code> · {{.Level}}{{if .Resolved}} · <span class="muted">Resolved</span>{{end}}<br>{{.Text}}<br><span class="muted">{{.Source}}</span></p>{{else}}<p>No findings.</p>{{end}}</div>
-<div class="panel"><h2>Signature checks</h2>{{range .Verification.Envelopes}}<p><code>{{.Name}}</code><br>{{if .Valid}}Valid signature{{else}}<span class="bad">INVALID: {{.Error}}</span>{{end}}</p>{{end}}</div>
-<details class="panel" open><summary>Request, timing and body hashes</summary><pre id="receipt-data"><code>{{json .Call.Receipt}}</code></pre><button type="button" data-copy="receipt-data">Copy details</button></details>
-{{range $i,$s := .Call.Supplements}}<details class="panel" open><summary>Provider supplement · attempts and region</summary><pre id="supplement-{{$i}}"><code>{{json $s}}</code></pre><button type="button" data-copy="supplement-{{$i}}">Copy supplement</button></details>{{end}}
-{{if .Stored}}<div class="panel"><h2>Stored content</h2><p>Shown on this local receipt page only.{{if .Stored.Truncated}} Content was truncated.{{end}}</p><h3>Request</h3><pre id="request-content"><code>{{text .Stored.Request}}</code></pre><button type="button" data-copy="request-content">Copy request</button><h3>Answer</h3><pre id="response-content"><code>{{text .Stored.Response}}</code></pre><button type="button" data-copy="response-content">Copy answer</button></div>{{end}}
-<div class="panel"><h2>Delete this receipt</h2><p>Deletes this receipt, its supplements and stored content from this Tabslip. External copies are unaffected.</p><form method="post" action="/r/{{.Call.Summary.ID}}/delete" data-confirm="Delete this receipt and its stored content? External copies are unaffected."><input type="hidden" name="token" value="{{.Token}}"><button class="danger">Delete receipt</button></form></div></section></div>{{end}}
+{{define "row"}}
+<tr data-id="{{.ID}}" data-started="{{.Started}}" data-total="{{.Total}}">
+  <td>
+    <a class="receipt-link" href="/r/{{.ID}}"><time datetime="{{.Started}}">{{.Started}}</time><span class="sr-only">Receipt {{.ID}}</span></a><br><span class="muted">{{val .Tag}}</span></td>
+  <td><code class="chip">{{.Upstream}}</code></td>
+  <td class="models">{{val .RequestedModel}}<span class="muted"> → </span>{{val .ReportedModel}}{{if warn .}}<br><span class="badge warning">● Findings</span>
+    {{end}}
+  </td>
+  <td class="provider">{{val .Provider}}</td>
+  <td class="mono">{{num .Input}} / {{num .Output}}</td>
+  <td class="mono">{{val .Cost}}{{if .Cost}}<br><span class="muted">{{.CostSource}}</span>
+    {{end}}
+  </td>
+  <td class="mono">{{num .TTFB}} / {{.Total}} ms</td>
+  <td><span class="badge {{if badStatus .Status}}bad{{else}}ok{{end}}">● {{num .Status}}</span></td>
+</tr>
+{{end}}
 
-{{define "money"}}<span class="amount">{{.Amount}}{{if ne .Amount "unknown"}} <small>USD</small>{{end}}</span><p>{{.Calls}} call{{if ne .Calls 1}}s{{end}} · {{.Unknown}} with unknown cost<br>Reported {{.Reported}}{{if ne .Reported "unknown"}} USD{{end}} · Estimated {{.Estimated}}{{if ne .Estimated "unknown"}} USD{{end}}</p>{{end}}
-{{define "spend"}}<div class="heading"><div><h1>Spend</h1><p>Exact totals from the calls your Tabslip kept. Dates use UTC.</p></div><span class="muted">Live</span></div>{{template "filters" .}}<section id="spend-results">{{template "spend-results" .}}</section>{{end}}
-{{define "spend-results"}}<div class="tiles">{{range .Spend.Tiles}}<div class="panel"><h2>{{.Title}}</h2>{{range .Rows}}{{template "money" .Total}}{{end}}</div>{{end}}</div><div class="panel"><h2>Last 30 days</h2>{{.Spend.Chart}}<details><summary>Daily totals (accessible table)</summary>{{template "spend-table" .Spend.Days}}</details></div>{{range .Spend.Tables}}<section class="panel"><h2>{{.Title}}</h2>{{template "spend-table" .Rows}}</section>{{end}}{{end}}
-{{define "spend-table"}}<div class="table-scroll" tabindex="0" role="region" aria-label="Spending totals"><table><thead><tr><th>Name</th><th>Calls / unknown cost</th><th>Total USD</th><th>Reported USD</th><th>Estimated USD</th><th>Input tokens / unknown calls</th><th>Output tokens / unknown calls</th></tr></thead><tbody>{{range .}}<tr><td>{{.Name}}{{if .Share}}<br><span class="muted">{{.Share}}</span>{{end}}</td><td>{{.Total.Calls}} / {{.Total.Unknown}}</td><td>{{.Total.Amount}}</td><td>{{.Total.Reported}}</td><td>{{.Total.Estimated}}</td><td>{{.InputText}} / {{.InputUnknown}}</td><td>{{.OutputText}} / {{.OutputUnknown}}</td></tr>{{else}}<tr><td colspan="7">No calls match these filters.</td></tr>{{end}}</tbody></table></div>{{end}}
+{{define "receipt"}}
+<div class="heading">
+  <h1>Receipt</h1>
+  <a href="/">← Calls</a>
+</div>
+<div class="receipt-layout">
+  <section aria-label="Paper receipt">{{.SVG}}
+    <pre class="sr-only">{{.ReceiptText}}</pre>
+  </section>
+  <section class="details">
+    <div class="panel">
+      <h2>
+        {{if .Verification.SignaturesValid}}SIGNED{{else}}<span class="bad">INVALID</span>
+        {{end}}
+      </h2>
+      <p>Signed by your Tabslip. A valid signature shows the signed record has not changed.</p>
+      <p>{{.Verification.Claims}}</p>
+      <dl>
+        <dt>Receipt</dt>
+        <dd><code>{{.Call.Summary.ID}}</code></dd>
+        <dt>Model asked</dt>
+        <dd>{{val .Call.Summary.RequestedModel}}</dd>
+        <dt>Model reported</dt>
+        <dd>{{val .Call.Summary.ReportedModel}}</dd>
+        <dt>Provider reported</dt>
+        <dd>{{val .Call.Summary.Provider}}</dd>
+        <dt>Key id</dt>
+        <dd><code>{{.Call.Receipt.Instance.KeyID}}</code></dd>
+      </dl>
+      <a class="button" href="/r/{{.Call.Summary.ID}}/download">Download receipt</a>
+      <p class="muted">The download is the original signed envelope. It contains no prompt or answer text.</p>
+    </div>
+    <div class="panel" id="findings">
+      <h2>Findings</h2>
+      {{range .Findings}}
+      <p><code>{{.Code}}</code> · {{.Level}}{{if .Resolved}} · <span class="muted">Resolved</span>
+        {{end}}<br>{{.Text}}<br><span class="muted">{{.Source}}</span>
+      </p>
+      {{else}}
+      <p>No findings.</p>
+      {{end}}
+    </div>
+    <div class="panel">
+      <h2>Signature checks</h2>
+      {{range .Verification.Envelopes}}
+      <p><code>{{.Name}}</code><br>
+        {{if .Valid}}Valid signature{{else}}<span class="bad">INVALID: {{.Error}}</span>
+        {{end}}
+      </p>
+      {{end}}
+    </div>
+    <details class="panel" open>
+      <summary>Request, timing and body hashes</summary>
+      <pre id="receipt-data"><code>{{json .Call.Receipt}}</code></pre><button type="button" data-copy="receipt-data">Copy details</button>
+    </details>
+    {{range $i,$s := .Call.Supplements}}
+    <details class="panel" open>
+      <summary>Provider supplement · attempts and region</summary>
+      <pre id="supplement-{{$i}}"><code>{{json $s}}</code></pre><button type="button" data-copy="supplement-{{$i}}">Copy supplement</button>
+    </details>
+    {{end}}
+    {{if .Stored}}
+    <div class="panel">
+      <h2>Stored content</h2>
+      <p>Shown on this local receipt page only.{{if .Stored.Truncated}} Content was truncated.{{end}}</p>
+      <h3>Request</h3>
+      <pre id="request-content"><code>{{text .Stored.Request}}</code></pre><button type="button" data-copy="request-content">Copy request</button>
+      <h3>Answer</h3>
+      <pre id="response-content"><code>{{text .Stored.Response}}</code></pre><button type="button" data-copy="response-content">Copy answer</button>
+    </div>
+    {{end}}
+    <div class="panel">
+      <h2>Delete this receipt</h2>
+      <p>Deletes this receipt, its supplements and stored content from this Tabslip. External copies are unaffected.</p>
+      <form method="post" action="/r/{{.Call.Summary.ID}}/delete" data-confirm="Delete this receipt and its stored content? External copies are unaffected.">
+        <input type="hidden" name="token" value="{{.Token}}">
+        <button class="danger">Delete receipt</button>
+      </form>
+    </div>
+  </section>
+</div>
+{{end}}
 
-{{define "setup"}}<div class="heading"><div><h1>Setup</h1><p>Change your client's base URL. Keep your existing provider key.</p></div></div><div class="setup-grid"><section><div class="panel"><h2>Content and retention</h2><p>Settings are saved to <code>{{.Path}}</code>.</p><form method="post" action="/settings"><input type="hidden" name="token" value="{{.Token}}"><fieldset><legend>Content storage</legend><label class="check"><input type="checkbox" name="keep_content" {{if .Locked}}disabled{{end}} {{if .Config.KeepContent}}checked{{end}}>Store content for all calls</label><label>Or store content for these tags<input type="text" name="tags" value="{{range $i,$v:=.Config.KeepContentTags}}{{if $i}}, {{end}}{{$v}}{{end}}" placeholder="client-a, client-b"></label></fieldset>{{if .Locked}}<p>The all-call content control is disabled by <code>--keep-content</code>.</p>{{end}}<p>Content changes apply to calls that start after saving. Downloads and exports never include content.</p><label>Keep receipts for this many days<input type="number" name="retention_days" min="0" max="365000" required value="{{.Config.RetentionDays}}"></label><p>Saving deletes older receipts, supplements and stored content immediately, then daily. Use 0 to keep all receipts. External copies are unaffected.</p><button type="submit">Save settings</button></form></div><div class="panel"><h2>Your signing key</h2><dl><dt>Key id</dt><dd><code>{{.KeyID}}</code></dd><dt>Fingerprint (SHA-256)</dt><dd><code>{{.Fingerprint}}</code></dd></dl><a class="button" href="/key.pub">Download public key</a><p>The signature shows records have not changed since your Tabslip signed them.</p></div></section><section>{{range $i,$s:=.Snippets}}<div class="panel"><h2>{{$s.Title}}</h2><pre id="snippet-{{$i}}"><code>{{$s.Code}}</code></pre><button type="button" data-copy="snippet-{{$i}}">Copy</button></div>{{end}}<div class="panel"><h2>Try it without a key</h2><pre><code>tabslip demo</code></pre><p>The demo uses simulated calls in a separate data directory.</p></div></section></div>{{end}}
+{{define "money"}}<span class="amount">{{.Amount}}{{if ne .Amount "unknown"}} <small>USD</small>
+{{end}}</span>
+<p>{{.Calls}} call{{if ne .Calls 1}}s{{end}} · {{.Unknown}} with unknown cost<br>Reported {{.Reported}}{{if ne .Reported "unknown"}} USD{{end}} · Estimated {{.Estimated}}{{if ne .Estimated "unknown"}} USD{{end}}</p>
+{{end}}
+
+{{define "spend"}}
+<div class="heading">
+  <div>
+    <h1>Spend</h1>
+    <p>Exact totals from the calls your Tabslip kept. Dates use UTC.</p>
+  </div><span class="muted">Live</span>
+</div>
+{{template "filters" .}}
+<section id="spend-results">
+  {{template "spend-results" .}}
+</section>
+{{end}}
+
+{{define "spend-results"}}
+<div class="tiles">
+  {{range .Spend.Tiles}}
+  <div class="panel">
+    <h2>{{.Title}}</h2>
+    {{range .Rows}}{{template "money" .Total}}{{end}}
+  </div>
+  {{end}}
+</div>
+<div class="panel">
+  <h2>Last 30 days</h2>{{.Spend.Chart}}
+  <details>
+    <summary id="spend-daily">Daily totals (accessible table)</summary>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="spend-daily">
+      {{template "spend-table" .Spend.Days}}
+    </div>
+  </details>
+</div>
+{{range $i, $table := .Spend.Tables}}
+<section class="panel">
+  <h2 id="spend-group-{{$i}}">{{.Title}}</h2>
+  <div class="table-scroll" tabindex="0" role="region" aria-labelledby="spend-group-{{$i}}">
+    {{template "spend-table" .Rows}}
+  </div>
+</section>
+{{end}}
+{{end}}
+
+{{define "spend-table"}}
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Calls / unknown cost</th>
+      <th>Total USD</th>
+      <th>Reported USD</th>
+      <th>Estimated USD</th>
+      <th>Input tokens / unknown calls</th>
+      <th>Output tokens / unknown calls</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .}}
+    <tr>
+      <td>{{.Name}}{{if .Share}}<br><span class="muted">{{.Share}}</span>
+        {{end}}
+      </td>
+      <td>{{.Total.Calls}} / {{.Total.Unknown}}</td>
+      <td>{{.Total.Amount}}</td>
+      <td>{{.Total.Reported}}</td>
+      <td>{{.Total.Estimated}}</td>
+      <td>{{.InputText}} / {{.InputUnknown}}</td>
+      <td>{{.OutputText}} / {{.OutputUnknown}}</td>
+    </tr>
+    {{else}}
+    <tr>
+      <td colspan="7">No calls match these filters.</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+{{end}}
+
+{{define "setup"}}
+<div class="heading">
+  <div>
+    <h1>Setup</h1>
+    <p>Change your client's base URL. Keep your existing provider key.</p>
+  </div>
+</div>
+<div class="setup-grid">
+  <section>
+    <div class="panel">
+      <h2>Content and retention</h2>
+      <p>Settings are saved to <code>{{.Path}}</code>.</p>
+      <form method="post" action="/settings">
+        <input type="hidden" name="token" value="{{.Token}}">
+        <fieldset>
+          <legend>Content storage</legend>
+          <label class="check">
+            <input type="checkbox" name="keep_content" {{if .Locked}}disabled{{end}} {{if .Config.KeepContent}}checked{{end}}>Store content for all calls
+          </label>
+          <label>Or store content for these tags<input type="text" name="tags" value="{{range $i,$v:=.Config.KeepContentTags}}{{if $i}}, {{end}}{{$v}}{{end}}" placeholder="client-a, client-b">
+          </label>
+        </fieldset>
+        {{if .Locked}}
+        <p>The all-call content control is disabled by <code>--keep-content</code>.</p>
+        {{end}}
+        <p>Content changes apply to calls that start after saving. Downloads and exports never include content.</p>
+        <label>Keep receipts for this many days<input type="number" name="retention_days" min="0" max="365000" required value="{{.Config.RetentionDays}}">
+        </label>
+        <p>Saving deletes older receipts, supplements and stored content immediately, then daily. Use 0 to keep all receipts. External copies are unaffected.</p>
+        <button type="submit">Save settings</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h2>Your signing key</h2>
+      <dl>
+        <dt>Key id</dt>
+        <dd><code>{{.KeyID}}</code></dd>
+        <dt>Fingerprint (SHA-256)</dt>
+        <dd><code>{{.Fingerprint}}</code></dd>
+      </dl>
+      <a class="button" href="/key.pub">Download public key</a>
+      <p>The signature shows records have not changed since your Tabslip signed them.</p>
+    </div>
+  </section>
+  <section>
+    {{range $i,$s:=.Snippets}}
+    <div class="panel">
+      <h2>{{$s.Title}}</h2>
+      <pre id="snippet-{{$i}}"><code>{{$s.Code}}</code></pre><button type="button" data-copy="snippet-{{$i}}">Copy</button>
+    </div>
+    {{end}}
+    <div class="panel">
+      <h2>Try it without a key</h2>
+      <pre><code>tabslip demo</code></pre>
+      <p>The demo uses simulated calls in a separate data directory.</p>
+    </div>
+  </section>
+</div>
+{{end}}
