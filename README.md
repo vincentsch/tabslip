@@ -138,6 +138,8 @@ alternative install methods and download checks.
 [RELEASE.md](RELEASE.md) describes release and provenance checks. Report
 security issues through [SECURITY.md](SECURITY.md).
 
+Built with [rungrad](https://rungrad.com).
+
 ## License
 
 [MIT](LICENSE). Made by [Vincent

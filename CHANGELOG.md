@@ -1,5 +1,7 @@
 ## Unreleased
 
+## 0.1.0 - 2026-10-23
+
 First release of Tabslip.
 
 - Forward OpenAI, Anthropic, OpenRouter and Ollama API calls through a local gateway.
