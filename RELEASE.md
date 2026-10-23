@@ -134,3 +134,28 @@ The source fallback reports `dev`. Confirm its module revision and manifest.
 Hosted CI, provenance issuance and verification, public installer access,
 release downloads and the public source fallback remain publication-only
 checks. Local preparation cannot establish their success.
+
+## Public v0.1.0 verification, 2026-10-23
+
+Published [tabslip v0.1.0](https://github.com/vincentsch/tabslip/releases/tag/v0.1.0)
+from `b2897ffcab6449de8812f3d95ecf7703b020aca9`. The [release workflow](https://github.com/vincentsch/tabslip/actions/runs/39947441701)
+passed Linux, macOS and Windows CI before the publishing job started. The release
+contains six platform executables and `checksums.txt`. All six downloaded SHA-256
+hashes matched. All six GitHub build attestations verified with `gh attestation
+verify`, the release workflow identity, tag ref and source digest pinned, and
+`--deny-self-hosted-runners`.
+
+On Linux amd64, latest and pinned (`v0.1.0`) public installers succeeded in fresh
+temporary folders. The installed CLI's version and bundled demo were checked.
+`go install github.com/vincentsch/tabslip/cmd/tabslip@v0.1.0` succeeded with an
+initially empty module cache, the public Go proxy and checksum database. The
+README agent prompt and `AGENTS.md` were fetched anonymously from GitHub and
+matched the published source. Fetching the prompt does not establish a trial
+with every supported coding agent.
+
+The [native public-release smoke run](https://github.com/vincentsch/tabslip/actions/runs/39948036190)
+passed on Linux amd64, macOS arm64 and Windows amd64: public native downloads,
+checksum checks, latest and pinned installation where supported, version and demo
+checks. Windows checked the `.exe` hash with PowerShell `Get-FileHash`. This is
+native execution coverage for those three hosts; the other three assets were
+cross-built and their checksums and provenance verified.
