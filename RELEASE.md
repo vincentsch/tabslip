@@ -1,8 +1,7 @@
 # Releasing Tabslip
 
-This is the procedure for Vincent to run when publication is authorized.
-The repository is currently private. Local preparation has not established
-hosted native execution or GitHub provenance issuance.
+This is the release procedure. The public v0.1.0 verification below records
+the completed native execution and GitHub provenance checks.
 
 ## Check the candidate locally
 
@@ -141,14 +140,14 @@ Published [tabslip v0.1.0](https://github.com/vincentsch/tabslip/releases/tag/v0
 from `b2897ffcab6449de8812f3d95ecf7703b020aca9`. The [release workflow](https://github.com/vincentsch/tabslip/actions/runs/39947441701)
 passed Linux, macOS and Windows CI before the publishing job started. The release
 contains six platform executables and `checksums.txt`. All six downloaded SHA-256
-hashes matched. All six GitHub build attestations verified with `gh attestation
-verify`, the release workflow identity, tag ref and source digest pinned, and
+hashes matched. All six GitHub build attestations verified with `gh attestation verify`, the release workflow identity, tag ref and source digest pinned, and
 `--deny-self-hosted-runners`.
 
 On Linux amd64, latest and pinned (`v0.1.0`) public installers succeeded in fresh
 temporary folders. The installed CLI's version and bundled demo were checked.
 `go install github.com/vincentsch/tabslip/cmd/tabslip@v0.1.0` succeeded with an
-initially empty module cache, the public Go proxy and checksum database. The
+initially empty module cache, the public Go proxy and checksum database. A separate
+empty-cache `go install` with `@latest` also resolved v0.1.0 successfully. The
 README agent prompt and `AGENTS.md` were fetched anonymously from GitHub and
 matched the published source. Fetching the prompt does not establish a trial
 with every supported coding agent.
