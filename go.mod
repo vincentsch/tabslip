@@ -6,7 +6,7 @@ require (
 	github.com/andybalholm/brotli v1.2.6
 	github.com/oklog/ulid/v2 v2.1.1
 	github.com/spf13/cobra v1.10.2
-	github.com/vincentsch/rungrad v0.3.2
+	github.com/vincentsch/rungrad v0.3.3
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.60.1
 )

@@ -19,7 +19,7 @@ done
 [[ -s "$work/startup.json" ]] || { echo 'Demo did not become ready.' >&2; exit 1; }
 # No self-update, destructive delete, authentication or ambiguous-name resolution
 # commands exist. Those scorer fixtures do not apply to this local receipt tool.
-go run github.com/vincentsch/rungrad/cmd/rungrad@v0.3.2 score "$work/tabslip" \
+go run github.com/vincentsch/rungrad/cmd/rungrad@v0.3.3 score "$work/tabslip" \
   --manifest auto --strict \
   --read "receipts --data-dir $work/data" \
   --mutate "export --data-dir $work/data --out $work/x.tabslip.json" \

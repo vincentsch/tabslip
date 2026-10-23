@@ -20,9 +20,11 @@ tabslip verify calls.tabslip.json --key-id ts_6f1c2a9b04d3e871 --json
 - `--key` PEM public key confirmed through another channel. Type: `string`. Default: unset (empty).
 - `--key-id` Expected signer key id. Type: `string`. Default: unset (empty).
 
-## Output modes
+## Output
 
-human, json
+Shows text you can read in your terminal.
+
+Use --json to get JSON for scripts and other programs.
 
 ## Related commands
 

@@ -24,9 +24,11 @@ tabslip receipts --tag acme-shop --since 2026-10-01 --json
 - `--until` Exclude calls from this date onward. Type: `string`. Default: unset (empty).
 - `--upstream` Select an upstream exactly. Type: `string`. Default: unset (empty).
 
-## Output modes
+## Output
 
-human, json
+Shows text you can read in your terminal.
+
+Use --json to get JSON for scripts and other programs.
 
 ## Related commands
 

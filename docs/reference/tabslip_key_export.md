@@ -19,13 +19,15 @@ tabslip key export --out tabslip.pub --dry-run
 
 - `--out` New PEM output file (required). Type: `string`. Default: unset (empty).
 
-## Output modes
+## Output
 
-human, json
+Shows text you can read in your terminal.
 
-## Changes state
+Use --json to get JSON for scripts and other programs.
 
-This command changes state and honors `--dry-run`.
+## Preview changes
+
+This command makes changes. Use `--dry-run` to see what would change without changing anything.
 
 ## Related commands
 
