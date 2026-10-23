@@ -1,10 +1,8 @@
 # Reporting a security issue
 
 Use [GitHub private vulnerability reporting](https://github.com/vincentsch/tabslip/security/advisories/new)
-for security reports. This channel becomes available when the repository is
-public and Vincent has enabled private vulnerability reporting. It is not
-yet available while the repository is private. Do not put exploit details,
-keys or private call data in public issues.
+for security reports. Do not put exploit details, keys or private call data
+in public issues.
 
 Include the Tabslip version, operating system and steps to reproduce.
 Use synthetic keys and prompts in examples. Remove credentials and private
