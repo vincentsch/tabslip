@@ -1,7 +1,7 @@
 # Costs
 
 Cost is reported, estimated or unknown. A provider's reported zero is zero;
-missing cost is unknown. Reported cost wins over an estimate, which stays
+missing cost is unknown. Reported cost takes precedence over an estimate, which stays
 in the signed receipt for comparison.
 
 ## Estimates

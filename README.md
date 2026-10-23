@@ -31,14 +31,19 @@ changes](docs/setup-with-an-agent.md).
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
+```
+
+If the installer prints a PATH command, run it first. Then start the demo:
+
+```sh
 tabslip demo
 ```
 
 Open the printed Page URL. The demo sends eight simulated calls. It includes a
 fallback and a failed call. Another call shows what happens when usage is
-unknown. It makes no external requests. It prints ready-to-run export and verify
-commands. Its temporary data directory is removed on Ctrl+C; use `tabslip demo
---data-dir ./demo-data` to keep it. See the [quickstart](docs/quickstart.md) for
+unknown. It makes no external requests and prints export and verify commands.
+Ctrl+C removes its temporary data directory. Use
+`tabslip demo --data-dir ./demo-data` to keep it. See the [quickstart](docs/quickstart.md) for
 installation and demo URLs.
 
 <p align="center">
@@ -110,8 +115,8 @@ verification](docs/verify.md) for commands and exit codes.
 ## What stays on your computer
 
 By default, receipts keep metadata and hashes without prompt or answer text.
-Optional content storage stays local, for all calls or selected tags, and never
-enters downloads or exports. Keys pass through and are never stored. There is no
+You can keep prompt and answer text locally for all calls or selected tags.
+Downloads and exports exclude this text. Keys pass through and are never stored. There is no
 telemetry. Read [storage and privacy](docs/privacy.md) for retention settings
 and network contacts.
 

@@ -82,11 +82,12 @@ It does not show the provider told the truth or stop the key owner inventing a r
 
 `tabslip show <receipt-id> --data-dir ./instance-data` checks the receipt and
 all attached supplements against the existing local public key. SIGNED means
-all contributors pass signature, type, signer-label and receipt-link checks.
+their signatures and record types are valid. Their signer labels must also match,
+and supplements must link to the receipt.
 A failed check displays INVALID and returns exit 10 without changing records.
 
 `show --json` returns only the original base envelope, even on exit 10.
-Diagnostics on stderr identify the failed contributor. A damaged supplement
+Diagnostics on stderr identify the invalid receipt or supplement. A damaged supplement
 can therefore make `show --json` fail while its base envelope still verifies
 on its own. Undecodable storage returns exit 2; a missing receipt returns 5.
 These reads never create or repair instance state.

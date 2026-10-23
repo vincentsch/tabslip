@@ -8,13 +8,17 @@ follow the steps below. The [FAQ](faq.md) answers common setup questions.
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh | sh
+```
+
+If the installer prints a PATH command, run it first. Then check the version:
+
+```sh
 tabslip --version
 ```
 
 The installer needs a POSIX shell and curl. It uses `sha256sum` or `shasum` to
-check the download. It supports Linux, macOS and Windows through Git Bash. Add
-the printed install directory to PATH if needed. Release binaries do not need Go
-or another runtime.
+check the download. It supports Linux, macOS and Windows through Git Bash.
+Release binaries do not need Go or another runtime.
 
 ## Try it without a key
 
@@ -46,8 +50,9 @@ tabslip serve
 ```
 
 Open `http://127.0.0.1:4545`. The Calls page updates live. Click a call to open
-its paper receipt. Spend shows totals; Setup has connection URLs and content
-settings. The theme button remembers your choice. `--open` opens the page on
+its paper receipt. Spend shows totals. Setup has connection URLs and lets you
+choose whether to store prompts and answers. The theme button remembers your
+choice. `--open` opens the page on
 startup.
 
 Change your client's base URL, keeping its existing key and model:
@@ -101,8 +106,8 @@ console.log(response.content);
 
 Save the URL in your project's normal environment or SDK configuration.
 Tabslip forwards the client's credentials and does not retry provider calls.
-Restore the original URL before stopping Tabslip if the app must keep working.
-It must keep running, including after reboot; installation does not add a service.
+Keep Tabslip running while your app uses its URL, including after reboot.
+Installation does not add a service. To stop using Tabslip, restore the original URL first.
 See [custom upstreams, Docker and remote pages through SSH](upstreams.md).
 
 A saved environment file needs to be loaded by your app in each fresh shell.

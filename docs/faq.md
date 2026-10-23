@@ -39,5 +39,5 @@ an explicit demo data directory remains. Keep the database and signing key toget
 Restart with the same config, data directory and required environment.
 Installation does not add a service manager, so routing through Tabslip
 also needs a running gateway after reboot. The [agent setup guide](setup-with-an-agent.md#reuse-stopping-and-undo)
-explains owned background processes and undo. See [troubleshooting](troubleshooting.md)
+explains how to stop a process your agent started and undo the setup. See [troubleshooting](troubleshooting.md)
 if calls fail after stopping.

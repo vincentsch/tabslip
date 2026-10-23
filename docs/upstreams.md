@@ -1,8 +1,8 @@
 # Connect an upstream
 
-Tabslip keeps your provider and forwards the client's credentials. Change
-the client's base URL to the selected local route. The [setup guide](../AGENTS.md)
-explains discovery, instance reuse and undo.
+Tabslip forwards calls to your provider using the client's existing credentials.
+Change the client's base URL to the local route below. The [setup guide](setup-with-an-agent.md)
+explains how your coding agent connects a project and how to undo its changes.
 
 | Provider | Client base URL at the default port |
 | --- | --- |
@@ -11,8 +11,10 @@ explains discovery, instance reuse and undo.
 | Ollama | `http://127.0.0.1:4545/ollama/v1` |
 | Anthropic | `http://127.0.0.1:4545/anthropic` |
 
-For another provider, preserve the original root in a custom YAML upstream.
-Remove its API `/v1` suffix, keeping any path before that suffix:
+For another provider, add an entry to your Tabslip config file. See the
+[default config paths](privacy.md#files-and-retention), or choose a file with
+`tabslip serve --config ./config.yaml`. Keep any existing settings and upstream
+entries. Use the provider's original URL without its final API `/v1` suffix:
 
 ```yaml
 upstreams:
@@ -23,8 +25,8 @@ upstreams:
 
 Point the OpenAI-compatible client at `http://127.0.0.1:4545/my-provider/v1`.
 For Anthropic Messages, use `api: anthropic` and a client URL ending in
-`/my-provider`. Preserve other settings and entries. Custom upstreams load
-at startup, so a running server needs a restart to see changes.
+`/my-provider`. Custom upstreams load at startup. Restart a running server to
+load changes.
 
 Supported listen inputs are `127.0.0.1`, `localhost`, `::1`, `0.0.0.0` and
 `::`. Wildcard inputs expose the proxy while keeping the Page URL on loopback.
@@ -56,7 +58,9 @@ Run Tabslip beside the app and use its loopback address. Reach the page with
 because the page checks the port in the browser's Host header. Use the selected
 port on both sides and in the local page URL. That local port must be free.
 The tunnel ends with Ctrl+C. Tabslip must keep running while the app routes
-through it. See the setup guide for detached start, owned-process stop and undo.
+through it. The [agent setup instructions](../AGENTS.md#5-start-only-if-needed)
+explain how to run it in the background. The [undo guide](setup-with-an-agent.md#reuse-stopping-and-undo)
+explains how to stop an instance you started and restore the app's original URL.
 
 ## Forwarding and tags
 

@@ -111,19 +111,23 @@ Nullable `provider`, `cost`, `data_region`, and `native_tokens.prompt` and
 `attempts` lists reported provider/status pairs; `findings` carries additional
 findings. Missing lists are empty. Provider details can arrive after the call.
 
-The signed base receipt never changes. Combined displays and unsigned exports
-use supplement cost once and preserve an existing provider if its replacement
-is null. Recovered cost removes active `price_unknown`; original findings stay
-signed and visible. The receipt page has one detailed findings list, ordered
-by signed receipt then signed supplement. Each entry names its signed source;
-recovered pricing entries are marked resolved.
-Findings from different sources stay separate even when their codes match.
-Resolved findings stay out of the Calls badge and findings filter.
-The receipt page and human `show` verify the original receipt and every
-attached supplement before showing SIGNED. An invalid contributor produces
-INVALID with the failed check; `show` exits 10. `show --json` still returns
-only the original receipt envelope, with diagnostics on stderr and exit 10
-if any contributor fails, even when that base envelope alone is valid.
-Undecodable stored data is a read error (exit 2); missing receipts use exit 5.
+The signed base receipt never changes. The page and unsigned exports count
+supplement cost once. They keep the existing provider when the supplement's
+provider is null.
+
+When a supplement supplies a missing cost, `price_unknown` is marked resolved.
+The original finding stays signed and visible. The receipt page lists findings
+from the base receipt first, then from supplements. Each finding names its
+signed source. Findings from different sources stay separate even when their
+codes match. Resolved findings stay out of the Calls badge and findings filter.
+
+The receipt page and the terminal `show` command verify the original receipt
+and every attached supplement before showing SIGNED. An invalid receipt or
+supplement produces INVALID with the failed check; `show` exits 10.
+`show --json` still returns only the original receipt envelope. If the receipt
+or any attached supplement fails verification, it prints diagnostics on stderr
+and exits 10, even when the base envelope alone is valid.
+Stored data that cannot be decoded is a read error (exit 2). A missing receipt
+uses exit 5.
 See [verification](verify.md), [costs](costs.md) and the
 [command reference](reference/index.md).
