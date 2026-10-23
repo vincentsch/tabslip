@@ -9,19 +9,18 @@ the steps. Route this project's AI API calls through it, make one real call,
 and show me the receipt.
 ```
 
-The agent follows [AGENTS.md](../AGENTS.md). It finds the client creation
-sites and reports the settings it will change before editing. If the project
-has no AI calls, it stops. The guide lists client patterns to help find calls.
-See [examples](../examples/README.md) for runnable clients.
+The agent follows [AGENTS.md](../AGENTS.md). It finds where your project creates
+its AI client and reports the settings it will change before editing. If the
+project has no AI calls, it stops. The guide lists client patterns to help find
+calls. See [examples](../examples/README.md) for runnable clients.
 
 ## What changes
 
 The agent installs the binary only when missing and records its resolved path.
-It locates the normal OS instance, runs doctor, and compares the running
-server's key id with the selected database's identity before reuse. A different
-identity needs the running instance's data directory, rather than a new key.
-A port owned by another program stays running; the selected free port is
-saved in the resolved YAML config.
+It runs `tabslip doctor` to find your existing setup. Before reusing a running
+server, it checks that the server and database use the same key. If they differ,
+it asks for that server's data directory. A port owned by another program stays
+running; the selected free port is saved in the resolved YAML config.
 
 Your project's normal environment file or client option gets the local base
 URL for its existing provider. A custom URL needs a matching upstream entry.
@@ -29,15 +28,17 @@ Keys stay in their current source and pass through to the same provider.
 No key belongs in Tabslip YAML. A fresh shell must load the saved project
 configuration; a temporary export alone is insufficient.
 
-The prompt authorizes one call that may cost money. The agent uses a unique
-request-only tag, checks the successful response and its new receipt, and
-reports its id and `/r/<id>` page. A failed-call receipt is not successful
-setup. Without a usable project key, use the simulated `tabslip demo` instead.
+The prompt authorizes one call that may cost money. The agent adds a unique tag
+to that request to find its receipt. It checks that the call succeeded, then
+reports the receipt id and `/r/<id>` page. A failed-call receipt is not
+successful setup. Without a usable project key, use the simulated `tabslip demo`
+instead.
 
 ## Reuse, stopping and undo
 
-The completion report gives the executable, config and data paths, changed
-files, content settings, process ownership and restart command. Existing
+The agent reports which files it changed and how to restart Tabslip. It also
+records where Tabslip is installed and which config and data paths it uses. The
+report includes the content settings and says who started the process. Existing
 content settings stay as they were. Restarting someone else's server requires
 the owner's permission; custom upstream entries load only at startup.
 

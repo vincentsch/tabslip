@@ -5,10 +5,20 @@ Use `tabslip demo` to try simulated calls without a key. Commands print
 human text by default; `--json` provides machine output and `--help` lists flags.
 
 The [generated command index](reference/index.md) describes the installed
-interface. `receipts` lists calls, `show` opens a terminal receipt, `export`
-writes records, `verify` checks signatures offline, `key` shows the signer,
-`prices` shows the selected table, and `doctor` checks the setup.
-Read-only commands never create keys, databases or price snapshots.
+interface.
+
+| Command | What it does |
+| --- | --- |
+| `receipts` | Lists recorded calls |
+| `show` | Shows a receipt in the terminal |
+| `export` | Writes records to a file |
+| `verify` | Checks signatures offline |
+| `key` | Shows the signer |
+| `prices` | Shows the selected price table |
+| `doctor` | Checks the setup |
+
+Read-only commands never create a database or signing key. They do not save
+price snapshots.
 
 Choose a guide for the task:
 

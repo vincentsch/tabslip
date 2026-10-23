@@ -5,9 +5,8 @@ provider. It also explains what the signed records can tell you.
 
 ## Export a bundle
 
-Use the source instance's data directory. Here `./instance-data` is an
-illustrative directory; replace it with the real directory, including the
-printed directory when using the demo. Quote paths with spaces, for example
+Replace `./instance-data` with the source instance's data directory. The demo
+prints its directory when it starts. Quote paths with spaces, for example
 `--data-dir "./my instance"`. Export and key export refuse existing output
 files; choose a new filename or move the earlier file first.
 
@@ -17,11 +16,12 @@ tabslip key --data-dir ./instance-data
 tabslip key export --data-dir ./instance-data --out tabslip.pub
 ```
 
-Export previews the count, range, tags, models, upstreams and excluded content.
-Add `--dry-run` to preview without writing. Filters include `--tag`, `--model`,
-`--upstream`, `--since` and `--until`; dates accept RFC 3339 or YYYY-MM-DD
-at UTC midnight. Since is inclusive; until is exclusive. No bounds selects
-all retained receipts. Reads work while running and after shutdown and create no state.
+Export previews which calls it will include and which content it leaves out. Add
+`--dry-run` to preview without writing. Filters include `--tag`, `--model`,
+`--upstream`, `--since` and `--until`; dates accept RFC 3339 or YYYY-MM-DD at
+UTC midnight. Since is inclusive; until is exclusive. No bounds selects all
+retained receipts. Reads work while running and after shutdown and create no
+state.
 
 Bundles contain original DSSE envelopes (signed payloads and signatures),
 signed supplements and a convenient copy of the public key. The embedded key
@@ -57,12 +57,13 @@ replacing `<receipt-id>` with a listed id. Single envelopes do not include suppl
 
 ## The three answers
 
-The signature result counts valid receipts and supplements or identifies
-invalid records. Supplement digests must bind to a receipt in the bundle;
-changed payloads, wrong keys and inconsistent signer labels are invalid.
-The signer result says whether an independently selected or existing matching
-local key confirms the signer. The claims answer says model names, token
-counts and provider cost come from the provider; Tabslip did not check the model itself.
+The signature result counts valid receipts and supplements or identifies invalid
+records. Supplement digests must bind to a receipt in the bundle; changed
+payloads, wrong keys and inconsistent signer labels are invalid. The signer
+result says whether an independently selected or existing matching local key
+confirms the signer. The claims answer explains that model names and usage come
+from the provider. Provider cost is also reported; Tabslip did not check the
+model itself.
 
 | Exit | Meaning |
 | --- | --- |

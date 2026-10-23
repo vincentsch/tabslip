@@ -1,9 +1,9 @@
 # Receipt fields
 
-A receipt is JSON signed by your Tabslip. `show --json` returns its DSSE
-envelope; decode the base64 `payload` to read the fields below. A download
-preserves the original signed bytes. Example commands use an illustrative
-data directory; substitute the one your server prints:
+A receipt is JSON signed by your Tabslip. `show --json` returns an envelope that
+holds the receipt and its signature, using the DSSE format. Decode the base64
+`payload` to read the fields below. A download keeps the original signed bytes.
+Replace `./instance-data` with the data directory Tabslip prints:
 
 ```sh
 tabslip receipts --data-dir ./instance-data --limit 0 --json
@@ -45,12 +45,14 @@ measured zero, never a substitute for missing data. Hashes are SHA-256 hex.
 | `cost.estimate`, `price_table` | Estimate retained alongside reported cost and attempted table version, nullable |
 | `findings` | Array of `{code, level, text}` |
 
-Parameters can include temperature, top_p, token limits, seed, reasoning
-effort, fallback models, routing provider options, response-format type and
-tool count. Bodies are hashed as seen by the capture path; streams hash
-forwarded stream bytes rather than reconstructed answer text. Metadata parsing
-is capped at 10 MiB per JSON value or SSE event; forwarding and hashing continue
-when metadata cannot be decoded.
+The `request.params` object keeps selected generation settings, such as
+`temperature` and token limits. It can also keep routing options and the number
+of tools. It excludes messages and tool arguments.
+
+Tabslip hashes the body bytes it receives. For streams, it hashes the forwarded
+bytes rather than reconstructing answer text. Metadata parsing is capped at 10
+MiB per JSON value or SSE event; forwarding and hashing continue when metadata
+cannot be decoded.
 
 For Anthropic, signed `input_tokens` is uncached input. Displays add cache
 reads and total cache writes. If any category is unknown, the displayed input
@@ -61,9 +63,9 @@ received Responses `incomplete` and `failed` events can be complete captures.
 
 ## JSON example
 
-This is illustrative OpenRouter decoded JSON before supplemental cost arrives,
-not captured provider data. It has no signature. The shortened id,
-key id and hashes stand for full values in a stored receipt:
+This made-up OpenRouter example shows decoded JSON before supplemental cost
+arrives. It has no signature. A stored receipt has full ids and hashes where
+this example uses shortened values:
 
 ```json
 {

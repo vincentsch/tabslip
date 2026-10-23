@@ -1,8 +1,8 @@
 # Start using Tabslip
 
-Tabslip forwards AI API calls and keeps signed receipts on your computer.
-You can [ask your coding agent to connect a project](setup-with-an-agent.md)
-or follow the steps below. The [FAQ](faq.md) covers costs, storage and stopping.
+Tabslip forwards AI API calls and keeps signed receipts on your computer. You
+can [ask your coding agent to connect a project](setup-with-an-agent.md) or
+follow the steps below. The [FAQ](faq.md) answers common setup questions.
 
 ## Install
 
@@ -11,53 +11,10 @@ curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh 
 tabslip --version
 ```
 
-The installer needs a POSIX shell, curl, and `sha256sum` or `shasum`.
-It supports Linux, macOS and Windows through Git Bash. Add the printed install
-directory to PATH if needed. Release binaries do not need Go or another runtime.
-
-The installer verifies SHA-256 checksums before replacing the binary.
-`INSTALL_DIR` selects its destination (default `~/.local/bin`);
-`TABSLIP_VERSION` selects a release tag. From a checkout:
-
-```sh
-TABSLIP_VERSION=v0.1.0 sh install.sh
-```
-
-For native Windows, download your architecture's `.exe` and `checksums.txt`
-from [Releases](https://github.com/vincentsch/tabslip/releases). In PowerShell,
-for an amd64 download in the current directory:
-
-```powershell
-Get-FileHash -Algorithm SHA256 .\tabslip-windows-amd64.exe
-Get-Content .\checksums.txt | Select-String 'tabslip-windows-amd64.exe'
-.\tabslip-windows-amd64.exe --version
-.\tabslip-windows-amd64.exe demo
-```
-
-Compare the full hash before running the executable. Use the arm64 filename
-on ARM Windows. A checksum detects changed downloads; confirm the publisher
-separately.
-
-With GitHub CLI installed, check the download's build provenance separately
-from the installer's checksum comparison:
-
-```sh
-gh attestation verify tabslip-<os>-<arch> --repo vincentsch/tabslip
-```
-
-Replace `<os>` with `linux`, `darwin` or `windows`, and `<arch>` with `amd64`
-or `arm64`. Add `.exe` for Windows, for example `tabslip-windows-amd64.exe`.
-See [release checks](../RELEASE.md) for the publication and provenance procedure.
-
-Source installation needs the Go version in [go.mod](../go.mod).
-`GOTOOLCHAIN=auto` can download the toolchain:
-
-```sh
-go install github.com/vincentsch/tabslip/cmd/tabslip@latest
-```
-
-A source install reports `dev`. Go installs in `GOBIN` or `$(go env GOPATH)/bin`.
-See [CONTRIBUTING.md](../CONTRIBUTING.md) to build from a checkout.
+The installer needs a POSIX shell and curl. It uses `sha256sum` or `shasum` to
+check the download. It supports Linux, macOS and Windows through Git Bash. Add
+the printed install directory to PATH if needed. Release binaries do not need Go
+or another runtime.
 
 ## Try it without a key
 
@@ -88,9 +45,10 @@ After installing, start the gateway:
 tabslip serve
 ```
 
-Open `http://127.0.0.1:4545`. The Calls page updates live; click a call for its paper
-receipt, or open Spend for totals and Setup for URLs and content settings.
-The theme button remembers your choice. `--open` opens the page on startup.
+Open `http://127.0.0.1:4545`. The Calls page updates live. Click a call to open
+its paper receipt. Spend shows totals; Setup has connection URLs and content
+settings. The theme button remembers your choice. `--open` opens the page on
+startup.
 
 Change your client's base URL, keeping its existing key and model:
 
@@ -162,3 +120,50 @@ SDK options; Python OpenAI and Node OpenAI also accept `OPENAI_BASE_URL`.
 See [runnable examples](../examples/README.md) for curl and environment files.
 For receipt fields, see [receipts](receipts.md); for problems, see
 [troubleshooting](troubleshooting.md).
+
+
+## More install options
+
+The installer verifies SHA-256 checksums before replacing the binary.
+`INSTALL_DIR` selects its destination (default `~/.local/bin`);
+`TABSLIP_VERSION` selects a release tag. From a checkout:
+
+```sh
+TABSLIP_VERSION=v0.1.0 sh install.sh
+```
+
+For native Windows, download your architecture's `.exe` and `checksums.txt`
+from [Releases](https://github.com/vincentsch/tabslip/releases). In PowerShell,
+for an amd64 download in the current directory:
+
+```powershell
+Get-FileHash -Algorithm SHA256 .\tabslip-windows-amd64.exe
+Get-Content .\checksums.txt | Select-String 'tabslip-windows-amd64.exe'
+.\tabslip-windows-amd64.exe --version
+.\tabslip-windows-amd64.exe demo
+```
+
+Compare the full hash before running the executable. Use the arm64 filename
+on ARM Windows. A checksum detects changed downloads; confirm the publisher
+separately.
+
+With GitHub CLI installed, check the download's build provenance separately
+from the installer's checksum comparison:
+
+```sh
+gh attestation verify tabslip-<os>-<arch> --repo vincentsch/tabslip
+```
+
+Replace `<os>` with `linux`, `darwin` or `windows`, and `<arch>` with `amd64`
+or `arm64`. Add `.exe` for Windows, for example `tabslip-windows-amd64.exe`.
+See [release checks](../RELEASE.md) for the publication and provenance procedure.
+
+Source installation needs the Go version in [go.mod](../go.mod).
+`GOTOOLCHAIN=auto` can download the toolchain:
+
+```sh
+go install github.com/vincentsch/tabslip/cmd/tabslip@latest
+```
+
+A source install reports `dev`. Go installs in `GOBIN` or `$(go env GOPATH)/bin`.
+See [CONTRIBUTING.md](../CONTRIBUTING.md) to build from a checkout.

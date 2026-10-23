@@ -1,7 +1,7 @@
 # Troubleshooting
 
-Run doctor with the same config and data directory as your server. For
-example, replace these illustrative paths with the selected instance paths:
+Run doctor with the same config and data directory as your server. Replace the
+paths below with your instance's paths:
 
 ```sh
 tabslip doctor --config ./config.yaml --data-dir ./instance-data --json

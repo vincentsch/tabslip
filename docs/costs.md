@@ -6,11 +6,12 @@ in the signed receipt for comparison.
 
 ## Estimates
 
-Direct OpenAI and Anthropic calls can use the embedded LiteLLM table.
-Lookup stays within the provider's namespace and tries reported model,
-requested model, then names without a date suffix. The receipt records the
-table version even when lookup misses. OpenRouter, Ollama and custom
-upstreams have no price-table estimates; they need reported cost.
+Direct OpenAI and Anthropic calls can use the embedded LiteLLM table. Tabslip
+looks up the reported model first, then the requested model. If neither matches,
+it tries names without a date suffix. It only uses prices listed for that
+provider. The receipt records the table version even when lookup misses.
+OpenRouter, Ollama and custom upstreams have no price-table estimates; they need
+reported cost.
 
 OpenAI cached input is subtracted from ordinary input and charged once.
 Reasoning tokens are already part of output. Anthropic signed input is the
@@ -29,8 +30,7 @@ Spend date windows use UTC midnight.
 
 ## Price tables
 
-Run these against your selected instance directory, using a concrete path in
-place of `./instance-data`:
+Replace `./instance-data` with your instance's data directory:
 
 ```sh
 tabslip prices --data-dir ./instance-data
@@ -40,10 +40,11 @@ tabslip prices update --data-dir ./instance-data --dry-run
 The first command shows the selected table's date and SHA-256. The second
 previews an update without a download or file change. To download explicitly,
 remove `--dry-run`. The source is LiteLLM's
-`model_prices_and_context_window.json` on its main branch. A validated, trimmed
-snapshot is published atomically; a failed update keeps the prior table.
-Restart the gateway to load it. A running gateway retains its startup table,
-and already signed costs never change. Demo mode always uses embedded prices.
+`model_prices_and_context_window.json` on its main branch. Tabslip checks the
+downloaded prices before replacing the saved table. A failed update keeps the
+old table. Restart the gateway to load it. A running gateway retains its startup
+table, and already signed costs never change. Demo mode always uses embedded
+prices.
 
 The embedded snapshot comes from LiteLLM revision
 `4818b767d8b4c4e5fa9885ab953d6f5cfe7c7ca5`. Developers can reproduce it with

@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/wordmark-dark.svg">
-    <img src="docs/media/wordmark-light.svg" alt="Tabslip" width="308" height="88">
+    <img src="docs/media/wordmark-light.svg" alt="Tabslip" width="320" height="80">
   </picture>
 </p>
 
@@ -10,10 +10,6 @@
 Tabslip forwards calls to your AI provider and keeps receipts signed by your Tabslip.
 
 <p align="center"><a href="https://www.tabslip.com">Website</a> · <a href="docs/quickstart.md">Quickstart</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
-
-![The Calls page in dark theme, with eight simulated demo calls, model names, tokens, costs and findings](docs/media/calls-dark.webp)
-
-![A simulated call as a paper receipt in light theme, with its signed stamp, findings and provider details](docs/media/receipt-light.webp)
 
 ## Set it up with your coding agent
 
@@ -26,9 +22,10 @@ the steps. Route this project's AI API calls through it, make one real call,
 and show me the receipt.
 ```
 
-The agent finds your AI client, keeps its provider and keys, and saves a small base URL change.
-It installs or reuses Tabslip, makes one provider call that may cost money, and shows the receipt and undo steps.
-Read [what the agent changes](docs/setup-with-an-agent.md).
+The agent finds your AI client and saves the base URL change. It installs
+Tabslip if needed. Your provider and keys stay the same. It makes one call that
+may cost money, then shows the receipt and undo steps. Read [what the agent
+changes](docs/setup-with-an-agent.md).
 
 ## Try it without a key
 
@@ -37,11 +34,25 @@ curl -fsSL https://raw.githubusercontent.com/vincentsch/tabslip/main/install.sh 
 tabslip demo
 ```
 
-Open the printed Page URL. The demo sends eight simulated calls, including a
-fallback, an error and a call with unknown usage. It makes no external requests.
-It prints ready-to-run export and verify commands. Its temporary data directory
-is removed on Ctrl+C; use `tabslip demo --data-dir ./demo-data` to keep it.
-See the [quickstart](docs/quickstart.md) for installation and demo URLs.
+Open the printed Page URL. The demo sends eight simulated calls. It includes a
+fallback and a failed call. Another call shows what happens when usage is
+unknown. It makes no external requests. It prints ready-to-run export and verify
+commands. Its temporary data directory is removed on Ctrl+C; use `tabslip demo
+--data-dir ./demo-data` to keep it. See the [quickstart](docs/quickstart.md) for
+installation and demo URLs.
+
+<p align="center">
+  <img src="docs/media/receipt-summary.webp" alt="A simulated receipt: demo/large was requested, demo/small was reported, and the receipt flags a fallback" width="358" height="450">
+</p>
+
+<details>
+<summary>See the full Calls page and receipt</summary>
+
+![The Calls page with eight simulated demo calls in dark theme](docs/media/calls-dark.webp)
+
+![A simulated call as a signed paper receipt](docs/media/receipt-light.webp)
+
+</details>
 
 ## Connect your app
 
@@ -71,10 +82,10 @@ print(response.choices[0].message.content)
 ```
 
 This makes a provider call that may cost money. Save the URL in your project's
-configuration and keep Tabslip running while the app uses it.
-The [quickstart](docs/quickstart.md#connect-your-app) has all four SDK snippets,
+configuration and keep Tabslip running while the app uses it. The
+[quickstart](docs/quickstart.md#connect-your-app) has all four SDK snippets,
 plus links to curl and environment examples. See [upstreams](docs/upstreams.md)
-for API coverage, custom providers, containers and servers.
+for custom providers or running beside your app in a container or on a server.
 
 The local page stays on loopback. Supported `--listen` values are `127.0.0.1`,
 `localhost`, `::1`, `0.0.0.0` and `::`; specific non-loopback binds are rejected.
@@ -82,47 +93,47 @@ For containers, use the [networking guide](docs/upstreams.md).
 
 ## What a receipt can and can't show
 
-A receipt records requested and reported models, usage, cost and findings.
-Model names, tokens and provider cost are reported by the provider.
-Tabslip labels its measured times, sizes, hashes and errors as observed.
-Missing values stay unknown, never zero. Cost can be reported, estimated from
-a versioned price table, or unknown. [Receipt fields](docs/receipts.md) and
-[costs](docs/costs.md) explain the details and signed supplements.
+A receipt keeps the model you requested and the one the provider reported. Usage
+and provider cost also come from the provider. Tabslip labels its own
+measurements as observed; these include timing and body hashes. Findings flag
+problems such as a fallback or missing usage. Missing values stay unknown, never
+zero. Cost can be reported, estimated from a versioned price table, or unknown.
+[Receipt fields](docs/receipts.md) and [costs](docs/costs.md) explain the
+details and signed supplements.
 
-A signature shows the receipt has not changed since your Tabslip signed it.
-It cannot check the provider's claims or stop the key owner inventing records.
-The terminal `show` command checks the receipt and all attached supplements
-before printing SIGNED. Failed checks print INVALID and return exit 10;
-`show --json` keeps the original base envelope on stdout and reports failed
-contributors on stderr. See [sharing and offline verification](docs/verify.md)
-for commands and exit codes.
+A signature shows the receipt has not changed since your Tabslip signed it. It
+cannot check the provider's claims or stop the key owner inventing records. The
+terminal `show` command checks the receipt and its attached supplements before
+printing SIGNED. A failed check prints INVALID. See [sharing and offline
+verification](docs/verify.md) for commands and exit codes.
 
 ## What stays on your computer
 
 By default, receipts keep metadata and hashes without prompt or answer text.
-Optional content storage stays local, for all calls or selected tags, and
-never enters downloads or exports. Keys pass through and are never stored.
-There is no telemetry. Read [storage and privacy](docs/privacy.md) for local
-paths, retention and network contacts.
+Optional content storage stays local, for all calls or selected tags, and never
+enters downloads or exports. Keys pass through and are never stored. There is no
+telemetry. Read [storage and privacy](docs/privacy.md) for retention settings
+and network contacts.
 
 ## Commands and docs
 
-The [command guide](docs/commands.md) covers `serve`, `demo`, `receipts`, `show`,
-`export`, `verify`, `key`, `prices` and `doctor`. Start with the
-[quickstart](docs/quickstart.md), [FAQ](docs/faq.md) or
-[troubleshooting](docs/troubleshooting.md). The [runnable examples](examples/README.md)
-include [tested SDK versions](examples/README.md#tested-dependencies).
+The [command guide](docs/commands.md) lists the commands and links to each
+reference page. Start with the [quickstart](docs/quickstart.md),
+[FAQ](docs/faq.md) or [troubleshooting](docs/troubleshooting.md). The [runnable
+examples](examples/README.md) include [tested SDK
+versions](examples/README.md#tested-dependencies).
 
 ## Install options
 
-Release binaries need no runtime. The shell installer supports Linux, macOS
-and Windows through Git Bash, and checks SHA-256 before replacing a binary.
-The [quickstart install section](docs/quickstart.md#install) covers installer
-settings, native Windows downloads, checksums, provenance and `go install`.
+Release binaries need no runtime. The shell installer supports Linux, macOS and
+Windows through Git Bash, and checks SHA-256 before replacing a binary. The
+[quickstart install section](docs/quickstart.md#more-install-options) covers
+alternative install methods and download checks.
 [CONTRIBUTING.md](CONTRIBUTING.md) covers source builds and development checks.
-[RELEASE.md](RELEASE.md) describes release and provenance checks.
-Report security issues through [SECURITY.md](SECURITY.md).
+[RELEASE.md](RELEASE.md) describes release and provenance checks. Report
+security issues through [SECURITY.md](SECURITY.md).
 
 ## License
 
-[MIT](LICENSE).
+[MIT](LICENSE). Made by [Vincent
+Schmalbach](https://www.vincentschmalbach.com/).
