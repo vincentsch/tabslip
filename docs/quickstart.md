@@ -1,7 +1,10 @@
 # Start using Tabslip
 
-Tabslip forwards AI API calls and keeps signed receipts on your computer. You
-can [ask your coding agent to connect a project](setup-with-an-agent.md) or
+Tabslip is a tool for developers whose apps use AI services such as OpenAI.
+It runs on your computer and keeps receipts for requests your app sends through it.
+You can check which model the service reported and track reported or estimated costs.
+
+You can [ask your coding agent to connect a project](setup-with-an-agent.md) or
 follow the steps below. The [FAQ](faq.md) answers common setup questions.
 
 ## Install

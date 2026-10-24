@@ -7,7 +7,9 @@
 
 <p align="center"><strong>Receipts for your AI API calls.</strong></p>
 
-Tabslip forwards calls to your AI provider and keeps receipts signed by your Tabslip.
+Tabslip is a tool for developers whose apps use AI services such as OpenAI.
+It runs on your computer and keeps receipts for requests your app sends through it.
+You can check which model the service reported and track reported or estimated costs.
 
 <p align="center"><a href="https://www.tabslip.com">Website</a> · <a href="docs/quickstart.md">Quickstart</a> · <a href="examples/README.md">Examples</a> · <a href="AGENTS.md">AGENTS.md</a></p>
 
